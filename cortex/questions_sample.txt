@@ -1,0 +1,57 @@
+# CORTEX Training Questions Sample
+# Format: one question per line, lines starting with # are comments
+# Prepare your 10,000+ questions file like this
+
+What is the capital of France?
+How do I validate an email address in Python?
+Write a Python function to reverse a string
+What are TXT records used for?
+How do I use OAuth 2.0?
+What is GraphQL vs REST?
+How do I cherry-pick a commit?
+What are webhooks?
+How do I use asyncio in Python?
+How do I check DNS records using dig?
+Explain Python decorators with an example
+What is a context manager and how do I create one?
+How do I handle exceptions in Python?
+Write a generator function that yields Fibonacci numbers
+What are *args and **kwargs?
+How do I read a file in Python?
+How do I write to a file in Python?
+What is the difference between list and tuple?
+How do I install a package with pip?
+What is virtualenv and how do I use it?
+How do I use the requests library to make HTTP GET?
+How do I parse JSON in Python?
+How do I convert a string to an integer?
+What is list comprehension?
+How do I sort a list in Python?
+How do I remove duplicates from a list?
+What is a dictionary in Python?
+How do I iterate over a dictionary?
+How do I use the with statement?
+What is the difference between == and is?
+How do I create a class in Python?
+What is inheritance?
+How do I use super()?
+What are static methods?
+What are class methods?
+What is a property decorator?
+How do I use lambda functions?
+What is map, filter, reduce?
+How do I handle multiple exceptions?
+What is the global interpreter lock (GIL)?
+How do I use threading in Python?
+How do I use multiprocessing?
+What is pickle used for?
+How do I use json module?
+How do I get command line arguments?
+What is __name__ == '__main__'?
+How do I use the logging module?
+How do I profile Python code?
+What isunit testing and how do I write tests?
+How do I use pytest?
+What is docstring and how do I write it?
+How do I generate requirements.txt?
+What is CI/CD and how does it relate to Python?
