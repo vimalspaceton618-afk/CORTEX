@@ -4,7 +4,8 @@
       "Bash(dir Z::*)",
       "Bash(python:*)",
       "Bash(tasklist:*)",
-      "Bash(findstr python:*)"
+      "Bash(findstr python:*)",
+      "Bash(start cmd:*)"
     ]
   }
 }

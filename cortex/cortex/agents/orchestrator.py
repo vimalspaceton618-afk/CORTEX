@@ -1,180 +1,145 @@
-"""Agent Orchestrator — Central dispatcher and lifecycle manager.
+"""CORTEX Agent Orchestrator v3.0 — Hierarchical agent management.
 
-Manages agent registration, task routing, message passing,
-step budgets, and execution traces for training data.
+Manages 9 Lead Agents, each with their own subagents.
+Routes via SmartRouter. Saves full traces for LLM training.
 """
 
-import asyncio
-import time
-import json
-from typing import Dict, List, Optional, Any
+import json, time, os, uuid
 from pathlib import Path
-from datetime import datetime
+from typing import Dict, List, Any, Optional
 
-from .base import BaseAgent, AgentTask, AgentResult, AgentStatus
+from .base import BaseAgent, LeadAgent, AgentTask, AgentResult
+from .router import SmartRouter
 
 
 class AgentOrchestrator:
-    """
-    Central dispatcher that manages all agent lifecycles.
+    """Central brain — manages lead agents, routes queries, saves traces."""
 
-    Responsibilities:
-    - Register and hold references to all agents
-    - Route tasks to the best agent (or specific agent by name)
-    - Handle agent-to-agent delegation (forwarding subtasks)
-    - Enforce global step budgets and timeouts
-    - Collect execution traces for LLM training data
-    """
-
-    def __init__(
-        self,
-        council=None,
-        memory_manager=None,
-        tool_registry=None,
-        trace_dir: str = "Z:/cortex_data/agent_traces",
-    ):
-        self.agents: Dict[str, BaseAgent] = {}
+    def __init__(self, council=None, memory_manager=None, tool_registry=None):
         self.council = council
         self.memory = memory_manager
         self.tools = tool_registry
-        self.trace_dir = Path(trace_dir)
+        self.leads: Dict[str, LeadAgent] = {}
+        self.router = SmartRouter()
+        self.trace_dir = Path(os.environ.get("CORTEX_TRACE_DIR", "Z:/cortex_data/agent_traces"))
         self.trace_dir.mkdir(parents=True, exist_ok=True)
 
-        # Execution history for this session
-        self.session_tasks: List[Dict[str, Any]] = []
-
-    def register(self, agent: BaseAgent):
-        """Register an agent and inject shared dependencies."""
-        agent.council = self.council
-        agent.memory = self.memory
-        agent.tools = self.tools
-        agent.orchestrator = self
-        self.agents[agent.name] = agent
-
-    def get_agent(self, name: str) -> Optional[BaseAgent]:
-        """Get agent by name."""
-        return self.agents.get(name)
+    def register_lead(self, agent: LeadAgent):
+        """Register a lead agent and inject dependencies."""
+        agent.inject_deps(
+            council=self.council,
+            memory=self.memory,
+            tools=self.tools,
+            orchestrator=self,
+        )
+        self.leads[agent.name] = agent
+        self.router.register_lead(agent)
 
     def list_agents(self) -> List[str]:
-        """List registered agent names."""
-        return list(self.agents.keys())
+        """List all lead agent names."""
+        return list(self.leads.keys())
+
+    def list_all_agents(self) -> Dict[str, List[str]]:
+        """Full agent tree: {lead: [subagents]}."""
+        tree = {}
+        for name, lead in self.leads.items():
+            if hasattr(lead, 'subagents'):
+                tree[name] = lead.list_subagents()
+            else:
+                tree[name] = []
+        return tree
 
     def get_agent_descriptions(self) -> Dict[str, str]:
-        """Get agent name → description mapping."""
-        return {name: agent.description for name, agent in self.agents.items()}
+        return {n: a.description for n, a in self.leads.items()}
 
-    async def dispatch(self, query: str, context: str = "", agent_name: str = None) -> AgentResult:
-        """
-        Main entry point: dispatch a query to the best agent.
-
-        If agent_name is specified, routes directly to that agent.
-        Otherwise, uses TriageAgent to determine the best handler.
-        """
-        task = AgentTask(query=query, context=context)
-
-        if agent_name and agent_name in self.agents:
-            return await self.dispatch_to_agent(agent_name, task)
-
-        # Use triage agent if available
-        if "triage" in self.agents:
-            return await self.dispatch_to_agent("triage", task)
-
-        # Fallback: find best agent by can_handle score
-        best_agent = None
-        best_score = 0.0
-        for name, agent in self.agents.items():
-            score = agent.can_handle(task)
-            if score > best_score:
-                best_score = score
-                best_agent = name
-
-        if best_agent:
-            return await self.dispatch_to_agent(best_agent, task)
-
-        # Last resort: direct council query
-        if self.council:
-            result = await self.council.process_question(query)
-            return AgentResult(
-                task_id=task.task_id,
-                agent_name="council",
-                success=True,
-                answer=result.get("answer", ""),
-                confidence=result.get("confidence", 0.5),
-            )
-
-        return AgentResult(
-            task_id=task.task_id,
-            agent_name="none",
-            success=False,
-            answer="No agents available to handle this request.",
-        )
-
-    async def dispatch_to_agent(self, agent_name: str, task: AgentTask) -> AgentResult:
-        """Dispatch a task to a specific agent."""
-        agent = self.agents.get(agent_name)
-        if not agent:
-            return AgentResult(
-                task_id=task.task_id,
-                agent_name=agent_name,
-                success=False,
-                answer=f"Agent '{agent_name}' not found.",
-            )
-
-        # Execute
-        result = await agent.execute(task)
-
-        # Save trace for LLM training
-        self._save_trace(task, result)
-
-        # Track in session history
-        self.session_tasks.append({
-            "task_id": task.task_id,
-            "query": task.query[:200],
-            "agent": agent_name,
-            "success": result.success,
-            "confidence": result.confidence,
-            "steps": result.steps_taken,
-            "duration_ms": result.duration_ms,
-            "timestamp": datetime.utcnow().isoformat(),
-        })
-
+    def get_full_descriptions(self) -> Dict[str, Dict[str, str]]:
+        """Full descriptions including subagents."""
+        result = {}
+        for name, lead in self.leads.items():
+            result[name] = {
+                "description": lead.description,
+                "role": lead.role.value,
+                "subagents": lead.get_subagent_descriptions() if hasattr(lead, 'subagents') else {},
+            }
         return result
 
-    def _save_trace(self, task: AgentTask, result: AgentResult):
-        """Save execution trace as JSONL for future LLM training."""
+    async def dispatch(self, query: str, agent_name: str = None, **kw) -> AgentResult:
+        """Dispatch a query — either to a specific agent or via smart routing."""
+        task = AgentTask(query=query, target_group=agent_name, **kw)
+        start = time.time()
+
+        if agent_name and agent_name in self.leads:
+            result = await self.leads[agent_name].execute(task)
+        else:
+            result = await self.router.execute(task)
+
+        result.duration_ms = (time.time() - start) * 1000
+        self._save_trace(query, result)
+        return result
+
+    async def dispatch_to_agent(self, agent_name: str, task: AgentTask) -> AgentResult:
+        """Direct dispatch for inter-agent delegation."""
+        agent = self.leads.get(agent_name)
+        if not agent:
+            return AgentResult(task_id=task.task_id, agent_name=agent_name, success=False,
+                               answer=f"Agent '{agent_name}' not found.")
+        return await agent.execute(task)
+
+    def _save_trace(self, query: str, result: AgentResult):
+        """Save execution trace for LLM training data."""
         try:
-            trace_file = self.trace_dir / f"traces_{datetime.utcnow().strftime('%Y-%m-%d')}.jsonl"
-            trace_entry = {
-                "task_id": task.task_id,
-                "query": task.query,
-                "context": task.context[:500],
+            from datetime import date
+            trace_file = self.trace_dir / f"traces_{date.today().isoformat()}.jsonl"
+            trace = {
+                "id": uuid.uuid4().hex[:12],
+                "query": query,
                 "agent": result.agent_name,
-                "answer": result.answer[:2000],
+                "agent_group": result.agent_group,
+                "agent_role": result.agent_role,
+                "answer": result.answer[:5000],
+                "success": result.success,
                 "confidence": result.confidence,
                 "steps_taken": result.steps_taken,
                 "tools_used": result.tools_used,
+                "subagents_used": result.subagents_used,
                 "agents_delegated": result.agents_delegated,
                 "duration_ms": result.duration_ms,
-                "success": result.success,
-                "full_trace": result.full_trace[:20],  # Cap trace size
-                "timestamp": datetime.utcnow().isoformat(),
+                "full_trace": result.full_trace[:50],
+                "metadata": result.metadata,
             }
             with open(trace_file, "a", encoding="utf-8") as f:
-                f.write(json.dumps(trace_entry, ensure_ascii=False) + "\n")
+                f.write(json.dumps(trace, default=str) + "\n")
         except Exception:
-            pass  # Don't let trace saving crash the system
+            pass
 
-    def get_session_stats(self) -> Dict[str, Any]:
-        """Get stats for current session."""
-        if not self.session_tasks:
-            return {"total_tasks": 0}
+    def agent_count(self) -> Dict[str, int]:
+        """Count leads and total subagents."""
+        total_sub = sum(len(l.subagents) for l in self.leads.values() if hasattr(l, 'subagents'))
+        return {"leads": len(self.leads), "subagents": total_sub, "total": len(self.leads) + total_sub}
 
-        return {
-            "total_tasks": len(self.session_tasks),
-            "successful": sum(1 for t in self.session_tasks if t["success"]),
-            "failed": sum(1 for t in self.session_tasks if not t["success"]),
-            "agents_used": list(set(t["agent"] for t in self.session_tasks)),
-            "avg_confidence": sum(t["confidence"] for t in self.session_tasks) / len(self.session_tasks),
-            "avg_steps": sum(t["steps"] for t in self.session_tasks) / len(self.session_tasks),
-            "total_duration_ms": sum(t["duration_ms"] for t in self.session_tasks),
-        }
+
+def create_agent_orchestrator(council=None, memory_manager=None, tool_registry=None) -> AgentOrchestrator:
+    """Factory: create orchestrator and register all 9 lead agent groups."""
+    orch = AgentOrchestrator(council=council, memory_manager=memory_manager, tool_registry=tool_registry)
+
+    from .explore import ExploreAgent
+    from .plan import PlanAgent
+    from .help import HelpGuideAgent
+    from .developers import DevLeadAgent
+    from .quality import QualityLeadAgent
+    from .devops import DevOpsLeadAgent
+    from .workflow import PMSpecAgent
+    from .docs import DocumentAgent
+    from .browser import BrowserUIAgent
+
+    orch.register_lead(ExploreAgent())
+    orch.register_lead(PlanAgent())
+    orch.register_lead(HelpGuideAgent())
+    orch.register_lead(DevLeadAgent())
+    orch.register_lead(QualityLeadAgent())
+    orch.register_lead(DevOpsLeadAgent())
+    orch.register_lead(PMSpecAgent())
+    orch.register_lead(DocumentAgent())
+    orch.register_lead(BrowserUIAgent())
+
+    return orch
