@@ -1,14 +1,6 @@
 <div align="center">
 
-<pre style="color: #00FFFF; font-weight: bold; background: #000; padding: 20px; border-radius: 10px; display: inline-block;">
-    ■ ■ ■ ■ ■    
-  ■ ■ ■ ■ ■ ■ ■  
-  ■ ■ ■ ■ ■ ■ ■  
-■ ■ ■   ■   ■ ■ ■
-■ ■ ■ ■ ■ ■ ■ ■ ■
-■   ■       ■   ■
-■   ■       ■   ■
-</pre>
+<img src="./assets/cortex_ghost.png" width="300" alt="CORTEX Minimalist AI Ghost Logo" />
 
 # ⚡ CORTEX System v3.0
 
