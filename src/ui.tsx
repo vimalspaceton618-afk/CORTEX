@@ -1,0 +1,175 @@
+import React, { useState, useRef } from 'react';
+import { Box, Text, useInput } from 'ink';
+import { Orchestrator } from './core/llm.js';
+
+const App = () => {
+  const [isTrusted, setIsTrusted] = useState(false);
+  const [trustCursor, setTrustCursor] = useState(1);
+  const [input, setInput] = useState('');
+  const [history, setHistory] = useState<{role: string, content: string}[]>([]);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [confirmPrompt, setConfirmPrompt] = useState<{message: string, resolve: (val: boolean) => void} | null>(null);
+  
+  const orchestrator = useRef(new Orchestrator()).current;
+
+  useInput((char, key) => {
+    if (!isTrusted) {
+      if (char === '1' || (key.return && trustCursor === 1)) {
+        console.clear();
+        setIsTrusted(true);
+      } else if (char === '2' || (key.return && trustCursor === 2) || key.escape) {
+        process.exit(0);
+      } else if (key.upArrow) {
+        setTrustCursor(1);
+      } else if (key.downArrow) {
+        setTrustCursor(2);
+      }
+      return;
+    }
+
+    // If we are showing a confirmation prompt, intercept keys for Y/N only
+    if (confirmPrompt) {
+      const lower = char?.toLowerCase();
+      if (lower === 'y') {
+        confirmPrompt.resolve(true);
+        setConfirmPrompt(null);
+      } else if (lower === 'n') {
+        confirmPrompt.resolve(false);
+        setConfirmPrompt(null);
+      } else if (key.return) {
+        confirmPrompt.resolve(true);
+        setConfirmPrompt(null);
+      }
+      return; // exit early
+    }
+
+    if (key.return && !isStreaming) {
+      if (input.trim().length > 0) {
+        const query = input.trim();
+        
+        // Intercept exit commands
+        const lowerQuery = query.toLowerCase();
+        if (lowerQuery === 'exit' || lowerQuery === 'quit' || lowerQuery === '/exit' || lowerQuery === '/quit') {
+            console.clear();
+            process.exit(0);
+        }
+
+        setInput('');
+        setHistory(prev => [...prev, { role: 'user', content: query }, { role: 'assistant', content: '' }]);
+        setIsStreaming(true);
+
+        const runStream = async () => {
+             const askConfirm = (msg: string) => {
+                 return new Promise<boolean>((resolve) => {
+                     setConfirmPrompt({ message: msg, resolve: (val) => { console.clear(); resolve(val); } });
+                 });
+             };
+
+             const stream = orchestrator.sendMessageStream(query, askConfirm);
+             let fullText = "";
+             for await (const chunk of stream) {
+                 fullText += chunk;
+                 setHistory(prev => {
+                     const updated = [...prev];
+                     updated[updated.length - 1] = { role: 'assistant', content: fullText };
+                     return updated;
+                 });
+             }
+             setIsStreaming(false);
+        };
+        runStream();
+      }
+    } else if (key.backspace || key.delete) {
+      if (!isStreaming) setInput((prev) => prev.slice(0, -1));
+    } else {
+      if (!isStreaming && char && !key.upArrow && !key.downArrow && !key.leftArrow && !key.rightArrow && !key.ctrl && !key.meta) {
+        setInput((prev) => prev + char);
+      }
+    }
+  });
+
+  if (!isTrusted) {
+    return (
+      <Box flexDirection="column" paddingY={1}>
+        <Text color="yellowBright" bold>Accessing workspace:</Text>
+        <Box marginY={1}>
+          <Text>{process.cwd()}</Text>
+        </Box>
+        <Text>Quick safety check: Is this a project you created or one you trust? (Like your own code, a well-known open source</Text>
+        <Text>project, or work from your team). If not, take a moment to review what's in this folder first.</Text>
+        <Box marginY={1}>
+          <Text>CORTEX System'll be able to read, edit, and execute files here.</Text>
+        </Box>
+        <Text color="gray">Security guide</Text>
+        <Box flexDirection="column" marginY={1}>
+          <Text color={trustCursor === 1 ? "blueBright" : "white"}>{trustCursor === 1 ? '❯ 1. Yes, I trust this folder' : '  1. Yes, I trust this folder'}</Text>
+          <Text color={trustCursor === 2 ? "blueBright" : "white"}>{trustCursor === 2 ? '❯ 2. No, exit' : '  2. No, exit'}</Text>
+        </Box>
+        <Text color="gray">Enter to confirm · Esc to cancel</Text>
+      </Box>
+    );
+  }
+
+  return (
+    <Box flexDirection="column" width={100}>
+      <Box marginBottom={1}>
+        <Text color="cyanBright" bold>CORTEX System v3.0 </Text>
+        <Text color="gray">{'─'.repeat(81)}</Text>
+      </Box>
+
+      <Box borderStyle="round" borderColor="gray" paddingX={4} paddingY={2} justifyContent="space-between">
+        <Box flexDirection="column" alignItems="center" width="40%">
+          <Text bold color="white">Welcome back!</Text>
+          <Box marginY={1} flexDirection="column" alignItems="center">
+            <Text color="cyanBright">{'    ██████    '}</Text>
+            <Text color="cyanBright">{'  ██████████  '}</Text>
+            <Text color="cyanBright">{'██████████████'}</Text>
+            <Text color="cyanBright">{'██  ██████  ██'}</Text>
+            <Text color="cyanBright">{'██████████████'}</Text>
+            <Text color="cyanBright">{'  ██      ██  '}</Text>
+          </Box>
+          <Text color="gray">CORTEX Multi-Agent OS · 13 Tools</Text>
+          <Text color="gray">E:\CORTEX</Text>
+        </Box>
+
+        <Box flexDirection="column" width="55%">
+          <Text color="gray">Tips for getting started</Text>
+          <Text color="gray">Run /help to see all available commands and agents.</Text>
+          <Text color="gray">Run /dashboard to toggle live system monitoring.</Text>
+          <Box marginY={1}></Box>
+          <Text color="gray">Recent activity</Text>
+          <Text color="gray">Model weights loaded cleanly</Text>
+          <Text color="gray">No missed memory syncs</Text>
+        </Box>
+      </Box>
+
+      <Box flexDirection="column" marginTop={1} marginBottom={1}>
+        {history.map((msg, index) => (
+          <Box key={index} flexDirection="column" marginBottom={1}>
+            <Text color={msg.role === 'user' ? 'greenBright' : 'cyanBright'} bold>
+              {msg.role === 'user' ? 'User' : 'CORTEX'}
+            </Text>
+            <Text>{msg.content}</Text>
+          </Box>
+        ))}
+      </Box>
+
+      {confirmPrompt && (
+        <Box borderStyle="bold" borderColor="yellow" padding={1} flexDirection="column" marginY={1}>
+          <Text color="yellowBright" bold>⚡ SECURE APPROVAL REQUIRED ⚡</Text>
+          <Text>{confirmPrompt.message}</Text>
+        </Box>
+      )}
+
+      {!confirmPrompt && (
+        <Box marginTop={1}>
+          <Text color="cyanBright" bold>cortex&gt; </Text>
+          <Text>{input}</Text>
+          <Text color="gray">{isStreaming ? '█' : '|'}</Text>
+        </Box>
+      )}
+    </Box>
+  );
+};
+
+export default App;

@@ -1,0 +1,39 @@
+{
+  "name": "cortex",
+  "version": "1.0.0",
+  "description": "<div align=\"center\">",
+  "main": "dist/cli.js",
+  "bin": {
+    "cortex": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node ./dist/cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vimalspaceton618-afk/CORTEX.git"
+  },
+  "keywords": [],
+  "author": "SpaceTon",
+  "license": "UNLICENSED",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/vimalspaceton618-afk/CORTEX/issues"
+  },
+  "homepage": "https://github.com/vimalspaceton618-afk/CORTEX#readme",
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3",
+    "dotenv": "^17.4.1",
+    "ink": "^7.0.0",
+    "openai": "^6.34.0",
+    "react": "^19.2.5"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "@types/react": "^19.2.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.2"
+  }
+}
