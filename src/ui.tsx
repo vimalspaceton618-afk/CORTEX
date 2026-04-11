@@ -159,14 +159,14 @@ const App = () => {
         <Box flexDirection="column" alignItems="center" width="40%">
           <Text bold color="white">Welcome back!</Text>
           <Box marginY={1} flexDirection="column" alignItems="center">
-            <Text color="#D32F2F">{'    ██████    '}</Text>
-            <Text color="#D32F2F">{'  ██████████  '}</Text>
-            <Text color="#D32F2F">{'██████████████'}</Text>
-            <Text color="#D32F2F">{'██    ██    ██'}</Text>
-            <Text color="#D32F2F">{'██    ██    ██'}</Text>
-            <Text color="#D32F2F">{'██████████████'}</Text>
-            <Text color="#D32F2F">{'  ██      ██  '}</Text>
-            <Text color="#D32F2F">{'  ██      ██  '}</Text>
+            <Text color="cyanBright">{'    ██████    '}</Text>
+            <Text color="cyanBright">{'  ██████████  '}</Text>
+            <Text color="cyanBright">{'██████████████'}</Text>
+            <Text color="cyanBright">{'██    ██    ██'}</Text>
+            <Text color="cyanBright">{'██    ██    ██'}</Text>
+            <Text color="cyanBright">{'██████████████'}</Text>
+            <Text color="cyanBright">{'  ██      ██  '}</Text>
+            <Text color="cyanBright">{'  ██      ██  '}</Text>
           </Box>
           <Text color="gray">CORTEX Multi-Agent OS · 13 Tools</Text>
           <Text color="gray">E:\CORTEX</Text>
