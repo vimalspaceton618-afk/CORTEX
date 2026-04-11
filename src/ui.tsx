@@ -162,10 +162,8 @@ const App = () => {
             <Text color="cyanBright">{'    ██████    '}</Text>
             <Text color="cyanBright">{'  ██████████  '}</Text>
             <Text color="cyanBright">{'██████████████'}</Text>
-            <Text color="cyanBright">{'██    ██    ██'}</Text>
-            <Text color="cyanBright">{'██    ██    ██'}</Text>
+            <Text color="cyanBright">{'██  ██████  ██'}</Text>
             <Text color="cyanBright">{'██████████████'}</Text>
-            <Text color="cyanBright">{'  ██      ██  '}</Text>
             <Text color="cyanBright">{'  ██      ██  '}</Text>
           </Box>
           <Text color="gray">CORTEX Multi-Agent OS · 13 Tools</Text>
