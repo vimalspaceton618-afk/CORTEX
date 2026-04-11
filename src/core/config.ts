@@ -21,7 +21,8 @@ export class ConfigManager {
         if (!fs.existsSync(this.globalConfigPath)) {
             fs.writeFileSync(this.globalConfigPath, JSON.stringify({
                 OPENAI_API_KEY: process.env.OPENAI_API_KEY || "",
-                OPENAI_BASE_URL: process.env.OPENAI_BASE_URL || ""
+                OPENAI_BASE_URL: process.env.OPENAI_BASE_URL || "",
+                AI_MODEL: process.env.AI_MODEL || ""
             }, null, 2), { mode: 0o600 }); // strict permissions
         }
 
@@ -33,6 +34,9 @@ export class ConfigManager {
             }
             if (data.OPENAI_BASE_URL && data.OPENAI_BASE_URL.trim() !== '') {
                 process.env.OPENAI_BASE_URL = data.OPENAI_BASE_URL;
+            }
+            if (data.AI_MODEL && data.AI_MODEL.trim() !== '') {
+                process.env.AI_MODEL = data.AI_MODEL;
             }
         } catch (e) {
             // Silently fallback to standard env

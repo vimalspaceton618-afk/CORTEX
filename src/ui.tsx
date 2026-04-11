@@ -1,6 +1,20 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+
+const Spinner = () => {
+    const frames = ['·', '✦', '★', '✦'];
+    const [frame, setFrame] = useState(0);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setFrame((current) => (current + 1) % frames.length);
+        }, 150);
+        return () => clearInterval(timer);
+    }, []);
+
+    return <Text color="magentaBright"> {frames[frame]} </Text>;
+};
 import { Box, Text, useInput } from 'ink';
-import { Orchestrator } from './core/llm.js';
+import { AgentManager } from './core/agent/AgentManager.js';
 
 const App = () => {
   const [isTrusted, setIsTrusted] = useState(false);
@@ -10,7 +24,7 @@ const App = () => {
   const [isStreaming, setIsStreaming] = useState(false);
   const [confirmPrompt, setConfirmPrompt] = useState<{message: string, resolve: (val: boolean) => void} | null>(null);
   
-  const orchestrator = useRef(new Orchestrator()).current;
+  const orchestrator = useRef(new AgentManager()).current;
 
   useInput((char, key) => {
     if (!isTrusted) {
@@ -47,11 +61,35 @@ const App = () => {
       if (input.trim().length > 0) {
         const query = input.trim();
         
-        // Intercept exit commands
+        // Intercept local commands
         const lowerQuery = query.toLowerCase();
         if (lowerQuery === 'exit' || lowerQuery === 'quit' || lowerQuery === '/exit' || lowerQuery === '/quit') {
             console.clear();
             process.exit(0);
+        }
+
+        if (lowerQuery === 'help' || lowerQuery === '/help') {
+            setInput('');
+            const helpText = "CORTEX System Commands:\n" +
+              "  /help      - Show this help message\n" +
+              "  /dashboard - Toggle live system monitoring\n" +
+              "  /exit      - Quit the application\n\n" +
+              "Agents Available:\n" +
+              "  - ExploreAgent   : Research and file exploration\n" +
+              "  - PlanAgent      : Task planning\n" +
+              "  - DeveloperAgent : Code writing\n" +
+              "  - QualityAgent   : Testing and linting\n" +
+              "  - DevOpsAgent    : Deployment and infra\n" +
+              "  - BrowserAgent   : Web interaction\n\n" +
+              "Note: To use the AI capabilities, ensure you have set OPENAI_API_KEY in your .env file.";
+            setHistory(prev => [...prev, { role: 'user', content: query }, { role: 'assistant', content: helpText }]);
+            return;
+        }
+
+        if (lowerQuery === '/dashboard') {
+            setInput('');
+            setHistory(prev => [...prev, { role: 'user', content: query }, { role: 'assistant', content: 'Dashboard feature is currently under development.' }]);
+            return;
         }
 
         setInput('');
@@ -65,7 +103,7 @@ const App = () => {
                  });
              };
 
-             const stream = orchestrator.sendMessageStream(query, askConfirm);
+             const stream = orchestrator.delegateTask(query, askConfirm);
              let fullText = "";
              for await (const chunk of stream) {
                  fullText += chunk;
@@ -143,9 +181,19 @@ const App = () => {
         </Box>
       </Box>
 
-      <Box flexDirection="column" marginTop={1} marginBottom={1}>
+      <Box flexDirection="column" marginTop={1} marginBottom={1} width="100%">
         {history.map((msg, index) => (
-          <Box key={index} flexDirection="column" marginBottom={1}>
+          <Box 
+            key={index} 
+            flexDirection="column" 
+            marginBottom={1}
+            paddingX={2}
+            paddingY={1}
+            borderStyle="round"
+            borderColor={msg.role === 'user' ? 'green' : 'cyan'}
+            alignSelf={msg.role === 'user' ? 'flex-end' : 'flex-start'}
+            width="80%"
+          >
             <Text color={msg.role === 'user' ? 'greenBright' : 'cyanBright'} bold>
               {msg.role === 'user' ? 'User' : 'CORTEX'}
             </Text>
@@ -162,10 +210,10 @@ const App = () => {
       )}
 
       {!confirmPrompt && (
-        <Box marginTop={1}>
+        <Box marginTop={1} paddingX={2} paddingY={1} borderStyle="round" borderColor="magenta">
           <Text color="cyanBright" bold>cortex&gt; </Text>
           <Text>{input}</Text>
-          <Text color="gray">{isStreaming ? '█' : '|'}</Text>
+          {isStreaming ? <Spinner /> : <Text color="gray">{'|'}</Text>}
         </Box>
       )}
     </Box>

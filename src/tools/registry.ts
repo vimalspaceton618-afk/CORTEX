@@ -6,8 +6,8 @@ export class ToolRegistry {
     private tools: Map<string, Tool> = new Map();
 
     constructor() {
-        this.register(new ShellTool());
-        this.register(new ReadFileTool());
+        // Automatically assigned global tools have been removed. 
+        // Agents must register their own explicit capabilities in setupTools()
     }
 
     register(tool: Tool) {
