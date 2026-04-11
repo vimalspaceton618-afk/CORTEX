@@ -1,82 +1,104 @@
 <div align="center">
 
-<img src="./assets/cortex_ghost.png" width="300" alt="CORTEX Minimalist AI Ghost Logo" />
-
 # ⚡ CORTEX System v3.0
 
-**Enterprise-Grade Multi-Agent OS & Shell**
+**Enterprise-Grade Agentic OS & Terminal Environment**
 
 </div>
 
 ---
 
 ## 📖 Overview
-CORTEX is a high-performance, fully localized, and absolute Zero-Trust Multi-Agent Operating System installed natively inside your Windows Command Terminal via Node.js and TypeScript. 
+CORTEX is a high-performance, fully autonomous Multi-Agent Operating System installed natively inside your Command Terminal via Node.js and TypeScript. 
 
-Built to replace complex software engineering pipelines, CORTEX features an incredibly lightweight React Ink interface capable of rendering multiple AI agent outputs linearly at 0% latency using asynchronous TS generators. 
-
----
-
-## 🚀 Key Enterprise Features
-
-### 1. Global Operating Execution (`npm link`)
-CORTEX is a globally-linked binary. Type `cortex` in any new terminal, and the OS will instantly boot, commandeering that specific directory as its active workspace, regardless of where that directory lives on your host machine.
-
-### 2. Universal Proxy Architecture (Model Agnostic)
-Escape vendor lock-in. CORTEX uses native JSON Schema arrays mapped uniquely to Universal OpenAI proxies. Plug your `OPENAI_BASE_URL` into any proxy:
-* **Local Operations**: LM Studio, Ollama, vLLM
-* **Cloud Infrastructure**: Groq, LiteLLM
-* **Frontier Models**: LLaMa 3 (70b), Gemini 1.5 Pro, Claude 3.5 Sonnet
-
-### 3. "Human-In-The-Loop" Zero Trust Security
-AI executing arbitrary scripts is terrifying. CORTEX natively mitigates this via compiler-level interceptions. 
-When the AI orchestrator passes a `Shell` execution request through its tools pipeline, the Node process halts the network stream, intercepts the TTY loop, and paints a strict `[Y/N]` security dialog on the UI. The AI is physically incapable of running a host command without an active human keystroke. 
-
-### 4. Locked API Shielding (`~/.cortexcli`)
-API Keys are never stored in your local repository where they could slip into GitHub. The `ConfigManager` enforces strict verification dynamically from a locked `~/.cortexcli/` environment root variable completely isolated by OS permissions.
+Featuring a sleek, minimalist retro-CRT aesthetic rendered with React Ink, CORTEX operates linearly at 0% latency using asynchronous TS generators. By decoupling the "Body" (the native system execution environment) from the "Brain" (the AI model), CORTEX creates an unrestricted execution arena that can be driven by any LLM.
 
 ---
 
-## ⚙️ Architecture Workflow
+## 🚀 Key Features
 
-Our internal TS-based Orchestrator routes interactions optimally through sandboxed Tools:
+### 🧠 Swappable Intelligence (Body & Brain Separation)
+CORTEX provides the ultimate vessel: the tools, the agents, and the file-system permissions. You provide the Brain. Using universal proxy architecture, you can plug your `OPENAI_API_KEY` or custom `OPENAI_BASE_URL` into any compatible LLM:
+* **Frontier Models**: OpenAI, Anthropic, Gemini, DeepSeek
+* **Local / Open Source**: LLaMa 3, Mistral, LM Studio, Ollama
 
-```mermaid
-graph TD
-    UI[React Ink TTY Interface]
-    GlobalEnv[(User Config ~/.cortex)]
-    Orchestrator[Core Orchestrator]
-    Agents[Agent Swarm]
-    Tools[TS Sandbox Registry]
+### 🤖 The Autonomous Agent Swarm
+Six distinct, highly specialized agents handle complex software pipelines autonomously:
+- **ExploreAgent**: Research and codebase exploration.
+- **PlanAgent**: High-level task structuring and design.
+- **DeveloperAgent**: Native code authoring and editing.
+- **QualityAgent**: Testing, linting, and bug fixing.
+- **DevOpsAgent**: Infrastructure and deployment operations.
+- **BrowserAgent**: Full web perception via Puppeteer and Vision tools.
 
-    UI -- "Prompt" --> Orchestrator
-    GlobalEnv -- "API Key" --> Orchestrator
-    Orchestrator -- "Routes Tasks" --> Agents
-    Agents -- "Tool Calls" --> Tools
-    Tools -. "⚡ Zero-Trust Intercept (Y/N)" .-> UI
+### ⚡ Global Operating Execution & Vision
+Boot CORTEX instantly in any directory using the `cortex` command. It takes over the active workspace, granting full system read/write access. Combined with `Vision.ts` capabilities, it can visually parse images, screenshots, and web pages.
+
+### 🛡️ Secure Config Management (`~/.cortexcli`)
+API Keys are heavily shielded. The dynamic `ConfigManager` isolates secure payload data to a strictly locked `~/.cortexcli/config.json` outside of the project repository, ensuring your keys never slip into Git commits.
+
+---
+
+## 🛠️ Public Installation Guide
+
+Follow these steps to install CORTEX globally on your machine:
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/vimalspaceton618-afk/CORTEX.git
+cd CORTEX
+```
+
+### 2. Install Dependencies
+```bash
+npm install
+```
+
+### 3. Build the CLI
+Compile the TypeScript orchestrator and tools into the functional executable:
+```bash
+npm run build
+```
+
+### 4. Install Globally
+Link the executable to your global path:
+```bash
+npm install -g .
+# Alternatively, you can use: npm link
+```
+
+### 5. Setup Configuration
+You can supply your API keys by creating a `.env` file in your root workspace (or let the ConfigManager handle it dynamically):
+```env
+OPENAI_API_KEY="your_api_key_here"
 ```
 
 ---
 
-## 🛠️ Usage
+## 💻 Usage
 
-Once installed globally, you can initialize the OS in any directory:
+Once installed globally, you can initialize the OS in any directory on your computer:
 
 ```bash
-# Navigate to a targeted codebase
-cd C:\Users\ADMIN\Documents\SecureProject
+# Navigate to any targeted project
+cd C:\Users\Admin\Documents\MyProject
 
 # Boot the Operating System
 cortex
 ```
 
-From within the OS, you can directly instruct the Orchestrator:
-> *"Analyze all TypeScript files in this directory and find potential infinite loops."*
+From within the OS, you can interact with the system via direct natural language:
+> *"Analyze this directory and set up a React application."*
 
-> *"Install the missing NPM dependencies for this repository."*
+> *"Open the browser, navigate to GitHub, and summarize the trending repositories."*
+
+**System Commands:**
+- Type `/help` - View all active agents and commands.
+- Type `/dashboard` - Toggle monitoring tools.
+- Hit `1` during the boot sequence to trust new workspaces.
 
 ---
 
-## ⚠️ Strict Proprietary Execution Warning
-**© 2026 SpaceTon. STRICTLY UNLICENSED AND PROPRIETARY.**
-Any copying, distribution, or unauthorized utilization of the CORTEX application source code is unequivocally prohibited and subject to severe prosecution. See `LICENSE` for details.
+## ⚠️ License & Proprietary Info
+**© 2026 SpaceTon.** 
+See `LICENSE` for exact details on distribution, modification, and utilization constraints.
