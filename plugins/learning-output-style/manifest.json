@@ -1,0 +1,10 @@
+{
+  "id": "learning-output-style",
+  "name": "Learning Output Style",
+  "version": "1.0.0",
+  "category": "rag",
+  "description": "Knowledge-centric response scaffolding for educational and contextual explanations.",
+  "supportedAgents": ["ExploreAgent", "PlanAgent", "DeveloperAgent"],
+  "enabledByDefault": true,
+  "toolsetKey": "rag"
+}

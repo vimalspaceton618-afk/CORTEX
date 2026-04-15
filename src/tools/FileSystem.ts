@@ -1,6 +1,8 @@
 import { Tool } from './Tool.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { resolveInsideWorkspace } from './PathSecurity.js';
+import { SharedContext } from '../core/agent/SharedContext.js';
 
 export class ReadFileTool extends Tool {
     name = "read_file";
@@ -16,8 +18,16 @@ export class ReadFileTool extends Tool {
 
     async execute(args: { filePath: string }): Promise<string> {
         try {
-            const resolvedPath = path.resolve(process.cwd(), args.filePath);
+            const resolvedPath = resolveInsideWorkspace(args.filePath);
+            
+            // Safety check: is it a directory?
+            const stats = await fs.stat(resolvedPath);
+            if (stats.isDirectory()) {
+                return `[IS_DIRECTORY]: ${args.filePath} is a directory. Use the "list_directory" tool to see its contents.`;
+            }
+
             const data = await fs.readFile(resolvedPath, 'utf-8');
+            SharedContext.touchFile(resolvedPath);
             return data;
         } catch (error: any) {
             return `[FILE READ ERROR]: ${error.message}`;
@@ -40,7 +50,7 @@ export class WriteFileTool extends Tool {
 
     async execute(args: { filePath: string, content: string }, requestConfirmation: (msg: string) => Promise<boolean>): Promise<string> {
         try {
-            const resolvedPath = path.resolve(process.cwd(), args.filePath);
+            const resolvedPath = resolveInsideWorkspace(args.filePath);
             const approved = await requestConfirmation(`Allow CORTEX to write to ${resolvedPath}?`);
             if (!approved) return "[OPERATION CANCELLED BY USER]";
             
@@ -48,6 +58,8 @@ export class WriteFileTool extends Tool {
             await fs.mkdir(path.dirname(resolvedPath), { recursive: true });
             
             await fs.writeFile(resolvedPath, args.content, 'utf-8');
+            SharedContext.touchFile(resolvedPath);
+            SharedContext.appendAudit({ event: "write_file", filePath: resolvedPath });
             return `Successfully written to ${args.filePath}`;
         } catch (error: any) {
             return `[FILE WRITE ERROR]: ${error.message}`;
@@ -69,11 +81,12 @@ export class DeleteTool extends Tool {
 
     async execute(args: { targetPath: string }, requestConfirmation: (msg: string) => Promise<boolean>): Promise<string> {
         try {
-            const resolvedPath = path.resolve(process.cwd(), args.targetPath);
+            const resolvedPath = resolveInsideWorkspace(args.targetPath);
             const approved = await requestConfirmation(`[DANGER] Allow CORTEX to permanently DELETE ${resolvedPath}?`);
             if (!approved) return "[OPERATION CANCELLED BY USER]";
             
             await fs.rm(resolvedPath, { recursive: true, force: true });
+            SharedContext.appendAudit({ event: "delete_path", targetPath: resolvedPath });
             return `Successfully deleted ${args.targetPath}`;
         } catch (error: any) {
             return `[DELETE ERROR]: ${error.message}`;
@@ -95,7 +108,7 @@ export class ListDirTool extends Tool {
 
     async execute(args: { dirPath: string }): Promise<string> {
         try {
-            const resolvedPath = path.resolve(process.cwd(), args.dirPath);
+            const resolvedPath = resolveInsideWorkspace(args.dirPath);
             const files = await fs.readdir(resolvedPath);
             return `Contents of ${args.dirPath}:\n${files.join('\n')}`;
         } catch (error: any) {

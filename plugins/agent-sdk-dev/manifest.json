@@ -1,0 +1,10 @@
+{
+  "id": "agent-sdk-dev",
+  "name": "Agent SDK Dev",
+  "version": "1.0.0",
+  "category": "devtools",
+  "description": "SDK-focused development workflows for building and testing agent capabilities.",
+  "supportedAgents": ["DeveloperAgent", "PlanAgent", "QualityAgent"],
+  "enabledByDefault": true,
+  "toolsetKey": "devtools"
+}

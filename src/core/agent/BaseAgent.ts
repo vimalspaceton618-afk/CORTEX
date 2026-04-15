@@ -2,18 +2,112 @@ import OpenAI from 'openai';
 import * as dotenv from 'dotenv';
 import { ToolRegistry } from '../../tools/registry.js';
 import { Message } from '../llm.js';
+import { getPluginManager } from '../../plugins/index.js';
 
 dotenv.config();
 
-let clientInstance: OpenAI | null = null;
-function getClient(): OpenAI {
-  if (!clientInstance) {
-    clientInstance = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY || "dummy-key",
-      baseURL: process.env.OPENAI_BASE_URL,
+function resolveModelForAgent(agentName: string): string {
+    if (agentName === 'PlanAgent' || agentName === 'ExploreAgent') {
+        return process.env.AI_MODEL_PLAN || process.env.AI_MODEL_FAST || process.env.AI_MODEL || 'gpt-4o';
+    }
+    if (agentName === 'DeveloperAgent') {
+        return process.env.AI_MODEL_CODE || process.env.AI_MODEL || 'gpt-4o';
+    }
+    return process.env.AI_MODEL || process.env.AI_MODEL_FAST || 'gpt-4o';
+}
+
+type BrainCandidate = {
+    provider: 'local' | 'cloud';
+    model: string;
+    apiKey: string;
+    baseURL?: string;
+};
+type BrainProvider = 'local' | 'cloud';
+
+function formatProviderFailure(candidate: BrainCandidate, error: any): string {
+    const message = String(error?.message || 'unknown error');
+    const isConnection =
+        message.includes('ECONNREFUSED') ||
+        message.toLowerCase().includes('connection error') ||
+        message.toLowerCase().includes('fetch failed');
+    const isRateLimit = message.includes('429') || message.toLowerCase().includes('rate limit');
+    if (candidate.provider === 'local' && isConnection) {
+        return `[local] Connection error at ${candidate.baseURL}. Start local server (e.g., Ollama: "ollama serve") and ensure model "${candidate.model}" is available.`;
+    }
+    if (candidate.provider === 'cloud' && isRateLimit) {
+        return `[cloud] Rate limit exceeded for model "${candidate.model}".`;
+    }
+    return `[${candidate.provider}] ${message}`;
+}
+
+const clientCache = new Map<string, OpenAI>();
+function getClientFor(baseURL: string | undefined, apiKey: string): OpenAI {
+    const cacheKey = `${baseURL || 'default'}::${apiKey || 'dummy-key'}`;
+    const existing = clientCache.get(cacheKey);
+    if (existing) return existing;
+    const client = new OpenAI({
+        apiKey: apiKey || 'dummy-key',
+        baseURL
     });
-  }
-  return clientInstance;
+    clientCache.set(cacheKey, client);
+    return client;
+}
+
+function resolveLocalModelForAgent(agentName: string): string {
+    if (agentName === 'PlanAgent' || agentName === 'ExploreAgent') {
+        return process.env.LOCAL_MODEL_PLAN || process.env.LOCAL_MODEL_FAST || process.env.LOCAL_MODEL || resolveModelForAgent(agentName);
+    }
+    if (agentName === 'DeveloperAgent') {
+        return process.env.LOCAL_MODEL_CODE || process.env.LOCAL_MODEL || resolveModelForAgent(agentName);
+    }
+    return process.env.LOCAL_MODEL || process.env.LOCAL_MODEL_FAST || resolveModelForAgent(agentName);
+}
+
+function getBrainCandidates(agentName: string): BrainCandidate[] {
+    const mode = (process.env.BRAIN_MODE || 'cloud').toLowerCase();
+    const cloud: BrainCandidate = {
+        provider: 'cloud',
+        model: resolveModelForAgent(agentName),
+        apiKey: process.env.OPENAI_API_KEY || 'dummy-key',
+        baseURL: process.env.OPENAI_BASE_URL
+    };
+    const local: BrainCandidate = {
+        provider: 'local',
+        model: resolveLocalModelForAgent(agentName),
+        apiKey: process.env.LOCAL_API_KEY || 'local-key',
+        baseURL: process.env.LOCAL_BASE_URL || 'http://127.0.0.1:11434/v1'
+    };
+    const providerMap: Record<BrainProvider, BrainCandidate> = { local, cloud };
+    const rawRoutingMap = process.env.BRAIN_ROUTING_MAP?.trim();
+    if (rawRoutingMap) {
+        try {
+            const parsed = JSON.parse(rawRoutingMap) as Record<string, BrainProvider[]>;
+            const route = parsed[agentName] || parsed['*'];
+            if (Array.isArray(route) && route.length > 0) {
+                const normalized = route.filter((x) => x === 'local' || x === 'cloud');
+                if (normalized.length > 0) {
+                    const deduped = Array.from(new Set(normalized));
+                    return deduped.map((provider) => providerMap[provider]);
+                }
+            }
+        } catch {
+            // Ignore malformed routing map and fall back to mode defaults
+        }
+    }
+    if (mode === 'local') return [local, cloud];
+    if (mode === 'hybrid') {
+        if (agentName === 'PlanAgent' || agentName === 'ExploreAgent') {
+            return [local, cloud];
+        }
+        if (agentName === 'DeveloperAgent') {
+            return [cloud, local];
+        }
+        if (agentName === 'BrowserAgent' || agentName === 'DevOpsAgent') {
+            return [cloud, local];
+        }
+        return [local, cloud];
+    }
+    return [cloud, local];
 }
 
 export abstract class BaseAgent {
@@ -28,6 +122,7 @@ export abstract class BaseAgent {
             content: systemPrompt
         });
         this.setupTools();
+        getPluginManager().registerToolsForAgent(this.name, this.registry);
     }
 
     protected abstract setupTools(): void;
@@ -47,12 +142,33 @@ export abstract class BaseAgent {
                   ? { tools: this.registry.getToolsSchema() as any } 
                   : {};
 
-                const stream = await getClient().chat.completions.create({
-                    model: process.env.AI_MODEL || 'gpt-4o',
-                    messages: this.history as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
-                    stream: true,
-                    ...toolsConfig
-                });
+                const candidates = getBrainCandidates(this.name);
+                let stream: Awaited<ReturnType<OpenAI['chat']['completions']['create']>> | null = null;
+                const providerErrors: string[] = [];
+                let activeProviderLabel = '';
+                for (const candidate of candidates) {
+                    try {
+                        const client = getClientFor(candidate.baseURL, candidate.apiKey);
+                        activeProviderLabel = `${candidate.provider}:${candidate.model}`;
+                        stream = await client.chat.completions.create({
+                            model: candidate.model,
+                            messages: this.history as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
+                            stream: true,
+                            ...toolsConfig
+                        });
+                        break;
+                    } catch (providerError: any) {
+                        const formatted = formatProviderFailure(candidate, providerError);
+                        providerErrors.push(formatted);
+                        yield `\n[${this.name} BRAIN FALLBACK]: ${formatted}`;
+                    }
+                }
+                if (!stream) {
+                    const guidance =
+                        '\nTry: 1) set LOCAL_BASE_URL correctly, 2) run local server, 3) switch BRAIN_MODE to local/hybrid, 4) update cloud model/key/quota.';
+                    throw new Error(`All brain providers failed.\n${providerErrors.join('\n')}${guidance}`);
+                }
+                yield `\n[${this.name} BRAIN ROUTE]: ${activeProviderLabel}\n`;
 
                 for await (const chunk of stream) {
                     const delta = chunk.choices[0]?.delta;

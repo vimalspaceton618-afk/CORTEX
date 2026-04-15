@@ -1,0 +1,10 @@
+{
+  "id": "frontend-design",
+  "name": "Frontend Design",
+  "version": "1.0.0",
+  "category": "frontend",
+  "description": "Production-grade UI and design workflows for React, Tailwind, and component systems.",
+  "supportedAgents": ["DeveloperAgent", "PlanAgent", "BrowserAgent"],
+  "enabledByDefault": true,
+  "toolsetKey": "frontend"
+}

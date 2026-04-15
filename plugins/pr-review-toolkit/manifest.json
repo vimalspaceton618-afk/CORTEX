@@ -1,0 +1,10 @@
+{
+  "id": "pr-review-toolkit",
+  "name": "PR Review Toolkit",
+  "version": "1.0.0",
+  "category": "devtools",
+  "description": "Pull request review workflows for risk detection, test planning, and merge readiness.",
+  "supportedAgents": ["QualityAgent", "DeveloperAgent", "DevOpsAgent"],
+  "enabledByDefault": true,
+  "toolsetKey": "devtools"
+}

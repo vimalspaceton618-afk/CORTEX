@@ -13,10 +13,12 @@ const Spinner = () => {
 
     return <Text color="magentaBright"> {frames[frame]} </Text>;
 };
-import { Box, Text, useInput } from 'ink';
+import { Box, Text, useInput, useApp } from 'ink';
 import { AgentManager } from './core/agent/AgentManager.js';
+import { collectHealthStatus, formatHealthReport } from './core/health.js';
 
 const App = () => {
+  const { exit } = useApp();
   const [isTrusted, setIsTrusted] = useState(false);
   const [trustCursor, setTrustCursor] = useState(1);
   const [input, setInput] = useState('');
@@ -29,10 +31,10 @@ const App = () => {
   useInput((char, key) => {
     if (!isTrusted) {
       if (char === '1' || (key.return && trustCursor === 1)) {
-        console.clear();
+        process.env.CORTEX_WORKSPACE_ROOT = process.cwd();
         setIsTrusted(true);
       } else if (char === '2' || (key.return && trustCursor === 2) || key.escape) {
-        process.exit(0);
+        exit();
       } else if (key.upArrow) {
         setTrustCursor(1);
       } else if (key.downArrow) {
@@ -64,14 +66,16 @@ const App = () => {
         // Intercept local commands
         const lowerQuery = query.toLowerCase();
         if (lowerQuery === 'exit' || lowerQuery === 'quit' || lowerQuery === '/exit' || lowerQuery === '/quit') {
-            console.clear();
-            process.exit(0);
+            exit();
+            return;
         }
 
         if (lowerQuery === 'help' || lowerQuery === '/help') {
             setInput('');
             const helpText = "CORTEX System Commands:\n" +
               "  /help      - Show this help message\n" +
+              "  /health    - Show runtime readiness checks\n" +
+              "  /plugins   - Show plugin catalog\n" +
               "  /dashboard - Toggle live system monitoring\n" +
               "  /exit      - Quit the application\n\n" +
               "Agents Available:\n" +
@@ -83,6 +87,19 @@ const App = () => {
               "  - BrowserAgent   : Web interaction\n\n" +
               "Note: To use the AI capabilities, ensure you have set OPENAI_API_KEY in your .env file.";
             setHistory(prev => [...prev, { role: 'user', content: query }, { role: 'assistant', content: helpText }]);
+            return;
+        }
+
+        if (lowerQuery === '/health') {
+            setInput('');
+            const status = collectHealthStatus();
+            setHistory(prev => [...prev, { role: 'user', content: query }, { role: 'assistant', content: formatHealthReport(status) }]);
+            return;
+        }
+
+        if (lowerQuery === '/plugins') {
+            setInput('');
+            setHistory(prev => [...prev, { role: 'user', content: query }, { role: 'assistant', content: 'Run: "list all plugins and categories" to invoke the plugin catalog via AgentManager.' }]);
             return;
         }
 
@@ -113,6 +130,7 @@ const App = () => {
                      return updated;
                  });
              }
+             orchestrator.recordTurn(query, fullText);
              setIsStreaming(false);
         };
         runStream();

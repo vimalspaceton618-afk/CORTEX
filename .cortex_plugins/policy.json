@@ -1,0 +1,21 @@
+{
+  "defaultAllow": true,
+  "tools": {
+    "plugin_github_issues": {
+      "allowed": true,
+      "requireConfirmation": true
+    },
+    "plugin_github_pr_comment": {
+      "allowed": true,
+      "requireConfirmation": true
+    },
+    "plugin_github_pr_merge": {
+      "allowed": true,
+      "requireConfirmation": true
+    },
+    "plugin_slack_webhook_post": {
+      "allowed": true,
+      "requireConfirmation": true
+    }
+  }
+}

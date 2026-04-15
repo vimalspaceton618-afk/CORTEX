@@ -1,0 +1,10 @@
+{
+  "id": "ralph-wiggum",
+  "name": "Ralph Wiggum Loop",
+  "version": "1.0.0",
+  "category": "automation",
+  "description": "Autonomous loop orchestration plugin for iterative multi-step task execution.",
+  "supportedAgents": ["PlanAgent", "DevOpsAgent", "AgentManager"],
+  "enabledByDefault": true,
+  "toolsetKey": "automation"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "explanatory-output-style",
+  "name": "Explanatory Output Style",
+  "version": "1.0.0",
+  "category": "automation",
+  "description": "Response-style plugin for richer explanation-oriented autonomous task output.",
+  "supportedAgents": ["PlanAgent", "AgentManager"],
+  "enabledByDefault": true,
+  "toolsetKey": "automation"
+}

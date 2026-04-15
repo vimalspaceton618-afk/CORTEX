@@ -1,0 +1,10 @@
+{
+  "id": "hookify",
+  "name": "Hookify",
+  "version": "1.0.0",
+  "category": "automation",
+  "description": "Automation workflows for hook-driven execution and event-based agent loops.",
+  "supportedAgents": ["PlanAgent", "DevOpsAgent", "AgentManager"],
+  "enabledByDefault": true,
+  "toolsetKey": "automation"
+}

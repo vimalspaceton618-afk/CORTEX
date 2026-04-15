@@ -1,0 +1,10 @@
+{
+  "id": "plugins-dev",
+  "name": "Plugins Dev",
+  "version": "1.0.0",
+  "category": "devtools",
+  "description": "Plugin authoring and extension workflows for creating and validating Cortex plugins.",
+  "supportedAgents": ["DeveloperAgent", "PlanAgent", "QualityAgent"],
+  "enabledByDefault": true,
+  "toolsetKey": "devtools"
+}

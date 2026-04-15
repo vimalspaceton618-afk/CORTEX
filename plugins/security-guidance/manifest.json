@@ -1,0 +1,10 @@
+{
+  "id": "security-guidance",
+  "name": "Security Guidance",
+  "version": "1.0.0",
+  "category": "devtools",
+  "description": "Security-oriented development guidance for hardening code, secrets, and operational workflows.",
+  "supportedAgents": ["DeveloperAgent", "QualityAgent", "DevOpsAgent"],
+  "enabledByDefault": true,
+  "toolsetKey": "devtools"
+}

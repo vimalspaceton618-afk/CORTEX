@@ -1,0 +1,10 @@
+{
+  "id": "code-review",
+  "name": "Code Review",
+  "version": "1.0.0",
+  "category": "devtools",
+  "description": "Structured code-review workflows for defects, regressions, and quality checks.",
+  "supportedAgents": ["QualityAgent", "DeveloperAgent"],
+  "enabledByDefault": true,
+  "toolsetKey": "devtools"
+}

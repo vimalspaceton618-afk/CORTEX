@@ -1,0 +1,10 @@
+{
+  "id": "commit-commands",
+  "name": "Commit Commands",
+  "version": "1.0.0",
+  "category": "devtools",
+  "description": "Git commit-oriented workflows for status, diff inspection, and commit hygiene.",
+  "supportedAgents": ["DeveloperAgent", "QualityAgent", "DevOpsAgent"],
+  "enabledByDefault": true,
+  "toolsetKey": "devtools"
+}

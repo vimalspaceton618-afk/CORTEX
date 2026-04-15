@@ -1,0 +1,10 @@
+{
+  "id": "feature-dev",
+  "name": "Feature Dev",
+  "version": "1.0.0",
+  "category": "devtools",
+  "description": "Feature implementation workflows for coding, testing, and incremental rollout.",
+  "supportedAgents": ["DeveloperAgent", "PlanAgent", "QualityAgent"],
+  "enabledByDefault": true,
+  "toolsetKey": "devtools"
+}

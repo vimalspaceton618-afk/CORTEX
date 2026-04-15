@@ -3,6 +3,8 @@ import { ReadFileTool, WriteFileTool, DeleteTool, ListDirTool } from '../tools/F
 import { ShellTool } from '../tools/Shell.js';
 import { ProcessManagementTool } from '../tools/System.js';
 import { AnalyzeImageTool } from '../tools/Vision.js';
+import { CodeSearchTool } from '../tools/CodeSearch.js';
+import { GitStatusTool, GitDiffTool, GitLogTool, GitBranchTool } from '../tools/Git.js';
 
 export class DeveloperAgent extends BaseAgent {
 
@@ -21,6 +23,11 @@ export class DeveloperAgent extends BaseAgent {
         this.registry.register(new ProcessManagementTool());
         this.registry.register(new AnalyzeImageTool());
         this.registry.register(new ShellTool());
+        this.registry.register(new CodeSearchTool());
+        this.registry.register(new GitStatusTool());
+        this.registry.register(new GitDiffTool());
+        this.registry.register(new GitLogTool());
+        this.registry.register(new GitBranchTool());
     }
 }
 
