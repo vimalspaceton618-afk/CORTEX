@@ -6,13 +6,13 @@ import { getPluginManager } from '../../plugins/index.js';
 
 class DelegateTaskTool implements Tool {
     name = "delegate_task";
-    description = "Delegate a task to a specialized subagent with strict handoff context. The subagents available are: DeveloperAgent, ExploreAgent, PlanAgent, QualityAgent, DevOpsAgent, BrowserAgent.";
+    description = "Delegate a task to a specialized subagent with strict handoff context. The subagents available are: DeveloperAgent, ExploreAgent, PlanAgent, QualityAgent, DevOpsAgent, BrowserAgent, NetworkAgent.";
     schema = {
         type: "object",
         properties: {
             agentName: {
                 type: "string",
-                enum: ["DeveloperAgent", "ExploreAgent", "PlanAgent", "QualityAgent", "DevOpsAgent", "BrowserAgent"],
+                enum: ["DeveloperAgent", "ExploreAgent", "PlanAgent", "QualityAgent", "DevOpsAgent", "BrowserAgent", "NetworkAgent"],
                 description: "The name of the specialized agent to route to"
             },
             prompt: {
@@ -44,6 +44,14 @@ class DelegateTaskTool implements Tool {
             requiresVerification: {
                 type: "boolean",
                 description: "Whether to auto-run quality verification after task completion."
+            },
+            maxIterations: {
+                type: "number",
+                description: "Optional loop budget for delegated run."
+            },
+            maxDurationMs: {
+                type: "number",
+                description: "Optional time budget for delegated run."
             }
         },
         required: ["agentName"]
@@ -58,7 +66,9 @@ class DelegateTaskTool implements Tool {
             absolutePaths = [],
             doneDefinition = "",
             contextSummary = "",
-            requiresVerification
+            requiresVerification,
+            maxIterations,
+            maxDurationMs
         } = args;
         const AgentClass = (subagents as any)[agentName];
         if (!AgentClass) {
@@ -73,6 +83,8 @@ class DelegateTaskTool implements Tool {
             constraints.length ? `Constraints:\n- ${constraints.join('\n- ')}` : "",
             absolutePaths.length ? `Absolute Paths:\n- ${absolutePaths.join('\n- ')}` : "",
             doneDefinition ? `Done Definition:\n${doneDefinition}` : "",
+            maxIterations ? `Execution Budget Max Iterations:\n${maxIterations}` : "",
+            maxDurationMs ? `Execution Budget Max Duration Ms:\n${maxDurationMs}` : "",
             prompt ? `Additional Instructions:\n${prompt}` : "",
             memoryBlock ? memoryBlock.trim() : ""
         ].filter(Boolean).join('\n\n');
@@ -91,7 +103,9 @@ class DelegateTaskTool implements Tool {
             event: "delegate_task",
             agentName,
             goal: goal || prompt?.slice(0, 200),
-            requiresVerification: Boolean(requiresVerification)
+            requiresVerification: Boolean(requiresVerification),
+            maxIterations: typeof maxIterations === 'number' ? maxIterations : null,
+            maxDurationMs: typeof maxDurationMs === 'number' ? maxDurationMs : null
         });
 
         const shouldVerify = agentName === "DeveloperAgent" && requiresVerification !== false;

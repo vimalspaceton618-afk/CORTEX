@@ -1,0 +1,24 @@
+{
+  "id": "sample_network_workflow",
+  "objective": "Demonstrate workflow validate/run/resume/cancel lifecycle.",
+  "maxIterations": 5,
+  "steps": [
+    {
+      "id": "collect_status",
+      "type": "action",
+      "description": "Collect connector status and repository context.",
+      "tool": "plugin_connector_status",
+      "args": {}
+    },
+    {
+      "id": "verify_policy",
+      "type": "verify",
+      "description": "Verify plugin policy before mutating operations."
+    },
+    {
+      "id": "complete",
+      "type": "action",
+      "description": "Finalize workflow summary."
+    }
+  ]
+}

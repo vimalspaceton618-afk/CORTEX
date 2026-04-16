@@ -57,6 +57,13 @@ Mutating connectors (`plugin_github_issues` create, `plugin_slack_webhook_post`)
 - `plugin_github_pr_comment` - add PR comments
 - `plugin_github_pr_merge` - merge pull requests
 - `plugin_slack_channel_history` - read Slack channel messages
+- `workflow_validate` - validate workflow JSON structure
+- `workflow_run` - create workflow run state and audit record
+- `workflow_resume` - advance workflow step execution state
+- `workflow_cancel` - cancel workflow run with policy gate
+- `mesh_envelope_create` - create signed distributed task envelope
+- `mesh_envelope_claim` - claim queued envelope for worker
+- `mesh_envelope_complete` - complete envelope with result
 
 ## Policy File
 

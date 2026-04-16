@@ -84,7 +84,8 @@ const App = () => {
               "  - DeveloperAgent : Code writing\n" +
               "  - QualityAgent   : Testing and linting\n" +
               "  - DevOpsAgent    : Deployment and infra\n" +
-              "  - BrowserAgent   : Web interaction\n\n" +
+              "  - BrowserAgent   : Web interaction\n" +
+              "  - NetworkAgent   : External API and workflow orchestration\n\n" +
               "Note: To use the AI capabilities, ensure you have set OPENAI_API_KEY in your .env file.";
             setHistory(prev => [...prev, { role: 'user', content: query }, { role: 'assistant', content: helpText }]);
             return;

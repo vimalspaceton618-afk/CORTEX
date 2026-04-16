@@ -3,6 +3,12 @@ import * as path from 'path';
 import { getWorkspaceRoot } from '../tools/PathSecurity.js';
 
 export type PluginPolicy = {
+    autonomyMode?: 'semi_auto' | 'full_auto_lab';
+    riskDefaults?: {
+        read?: { requireConfirmation?: boolean };
+        mutate?: { requireConfirmation?: boolean };
+        destructive?: { requireConfirmation?: boolean };
+    };
     defaultAllow?: boolean;
     tools?: Record<string, {
         allowed?: boolean;
@@ -11,6 +17,12 @@ export type PluginPolicy = {
 };
 
 const DEFAULT_POLICY: PluginPolicy = {
+    autonomyMode: 'semi_auto',
+    riskDefaults: {
+        read: { requireConfirmation: false },
+        mutate: { requireConfirmation: true },
+        destructive: { requireConfirmation: true }
+    },
     defaultAllow: true,
     tools: {}
 };
@@ -46,7 +58,17 @@ function loadPolicy(): PluginPolicy {
     if (!fs.existsSync(policyPath)) return DEFAULT_POLICY;
     try {
         const parsed = JSON.parse(fs.readFileSync(policyPath, 'utf-8')) as PluginPolicy;
+        const mode = (process.env.AUTONOMY_MODE || parsed.autonomyMode || 'semi_auto') as 'semi_auto' | 'full_auto_lab';
+        const riskDefaults = mode === 'full_auto_lab'
+            ? {
+                read: { requireConfirmation: false },
+                mutate: { requireConfirmation: false },
+                destructive: { requireConfirmation: false }
+            }
+            : (parsed.riskDefaults || DEFAULT_POLICY.riskDefaults);
         return {
+            autonomyMode: mode,
+            riskDefaults,
             defaultAllow: parsed.defaultAllow ?? true,
             tools: parsed.tools || {}
         };
@@ -63,16 +85,22 @@ export function savePolicy(policy: PluginPolicy): void {
     ensurePluginPolicyFile();
     const policyPath = getPolicyPath();
     const normalized: PluginPolicy = {
+        autonomyMode: policy.autonomyMode || 'semi_auto',
+        riskDefaults: policy.riskDefaults || DEFAULT_POLICY.riskDefaults,
         defaultAllow: policy.defaultAllow ?? true,
         tools: policy.tools || {}
     };
     fs.writeFileSync(policyPath, JSON.stringify(normalized, null, 2), 'utf-8');
 }
 
-export function checkToolPolicy(toolName: string, isMutating: boolean): { allowed: boolean; requireConfirmation: boolean } {
+export function checkToolPolicy(
+    toolName: string,
+    riskLevel: 'read' | 'mutate' | 'destructive' = 'read'
+): { allowed: boolean; requireConfirmation: boolean; autonomyMode: string } {
     const policy = loadPolicy();
     const perTool = policy.tools?.[toolName];
     const allowed = perTool?.allowed ?? (policy.defaultAllow ?? true);
-    const requireConfirmation = perTool?.requireConfirmation ?? isMutating;
-    return { allowed, requireConfirmation };
+    const defaultRisk = policy.riskDefaults?.[riskLevel]?.requireConfirmation ?? (riskLevel !== 'read');
+    const requireConfirmation = perTool?.requireConfirmation ?? defaultRisk;
+    return { allowed, requireConfirmation, autonomyMode: policy.autonomyMode || 'semi_auto' };
 }

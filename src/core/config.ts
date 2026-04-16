@@ -21,6 +21,9 @@ export class ConfigManager {
             LOCAL_MODEL_PLAN: process.env.LOCAL_MODEL_PLAN || "",
             LOCAL_MODEL_CODE: process.env.LOCAL_MODEL_CODE || "",
             LOCAL_MODEL_FAST: process.env.LOCAL_MODEL_FAST || "",
+            AUTONOMY_MODE: process.env.AUTONOMY_MODE || "semi_auto",
+            AUTO_LOOP_MAX_ITERATIONS: process.env.AUTO_LOOP_MAX_ITERATIONS || "8",
+            AUTO_LOOP_MAX_DURATION_MS: process.env.AUTO_LOOP_MAX_DURATION_MS || "120000",
             SHELL_TIMEOUT_MS: process.env.SHELL_TIMEOUT_MS || "60000",
             SHELL_MAX_OUTPUT_BYTES: process.env.SHELL_MAX_OUTPUT_BYTES || "16000",
             COMMAND_ALLOWLIST: process.env.COMMAND_ALLOWLIST || "",
@@ -100,6 +103,15 @@ export class ConfigManager {
             }
             if (data.LOCAL_MODEL_FAST && data.LOCAL_MODEL_FAST.trim() !== '') {
                 process.env.LOCAL_MODEL_FAST = data.LOCAL_MODEL_FAST;
+            }
+            if (data.AUTONOMY_MODE && data.AUTONOMY_MODE.trim() !== '') {
+                process.env.AUTONOMY_MODE = data.AUTONOMY_MODE;
+            }
+            if (data.AUTO_LOOP_MAX_ITERATIONS && data.AUTO_LOOP_MAX_ITERATIONS.toString().trim() !== '') {
+                process.env.AUTO_LOOP_MAX_ITERATIONS = data.AUTO_LOOP_MAX_ITERATIONS.toString();
+            }
+            if (data.AUTO_LOOP_MAX_DURATION_MS && data.AUTO_LOOP_MAX_DURATION_MS.toString().trim() !== '') {
+                process.env.AUTO_LOOP_MAX_DURATION_MS = data.AUTO_LOOP_MAX_DURATION_MS.toString();
             }
             if (data.SHELL_TIMEOUT_MS && data.SHELL_TIMEOUT_MS.toString().trim() !== '') {
                 process.env.SHELL_TIMEOUT_MS = data.SHELL_TIMEOUT_MS.toString();

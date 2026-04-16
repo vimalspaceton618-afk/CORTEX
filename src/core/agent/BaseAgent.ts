@@ -131,8 +131,26 @@ export abstract class BaseAgent {
         this.history.push({ role: 'user', content: input });
 
         let keepRunning = true;
+        const startedAt = Date.now();
+        const maxIterations = Math.max(1, Math.min(Number(process.env.AUTO_LOOP_MAX_ITERATIONS || 8), 100));
+        const maxDurationMs = Math.max(1000, Math.min(Number(process.env.AUTO_LOOP_MAX_DURATION_MS || 120000), 30 * 60 * 1000));
+        let iteration = 0;
         
         while (keepRunning) {
+            iteration += 1;
+            const elapsed = Date.now() - startedAt;
+            if (iteration > maxIterations) {
+                const budgetMsg = `\n[${this.name} LOOP STOP]: Iteration budget exceeded (${maxIterations}).`;
+                yield budgetMsg;
+                this.history.push({ role: 'assistant', content: budgetMsg });
+                break;
+            }
+            if (elapsed > maxDurationMs) {
+                const budgetMsg = `\n[${this.name} LOOP STOP]: Time budget exceeded (${maxDurationMs}ms).`;
+                yield budgetMsg;
+                this.history.push({ role: 'assistant', content: budgetMsg });
+                break;
+            }
             let currentResponse = "";
             let currentToolCalls: Record<number, any> = {};
 

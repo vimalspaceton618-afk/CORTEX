@@ -1,6 +1,6 @@
 {
   "session": {
-    "lastUserInput": "hello",
+    "lastUserInput": "hello?",
     "touchedFiles": [
       "E:\\CORTEX\\cloud-setup\\main.tf",
       "E:\\CORTEX\\cloud-setup\\variables.tf",
@@ -11,8 +11,8 @@
       "E:\\CORTEX\\cloud-setup\\smoke_test_feature.txt",
       "E:\\CORTEX\\package.json"
     ],
-    "lastAssistantOutput": "\n[AgentManager BRAIN FALLBACK]: [cloud] Rate limit exceeded for model \"openai/gpt-oss-120b:free\".\n[AgentManager BRAIN FALLBACK]: [local] Connection error at http://127.0.0.1:11434/v1. Start local server (e.g., Ollama: \"ollama serve\") and ensure model \"openai/gpt-oss-120b:free\" is available.\n[AgentManager SYSTEM ERROR]: All brain providers failed.\n[cloud] Rate limit exceeded for model \"openai/gpt-oss-120b:free\".\n[local] Connection error at http://127.0.0.1:11434/v1. Start local server (e.g., Ollama: \"ollama serve\") and ensure model \"openai/gpt-oss-120b:free\" is available.\nTry: 1) set LOCAL_BASE_URL correctly, 2) run local server, 3) switch BRAIN_MODE to local/hybrid, 4) update cloud model/key/quota.",
-    "rollingSummary": "hello -> \n[AgentManager BRAIN FALLBACK]: [cloud] Rate limit exceeded for model \"openai/gpt-oss-120b:free\".\n[AgentManager BRAIN FALLBACK]: [local] Connection error at http://127.0.0.1:11434/v1. Start local server (e.g., Ollama: \"o",
+    "lastAssistantOutput": "\n[AgentManager BRAIN ROUTE]: cloud:openai/gpt-oss-120b:free\nHello! How can I assist you today?",
+    "rollingSummary": "hello? -> \n[AgentManager BRAIN ROUTE]: cloud:openai/gpt-oss-120b:free\nHello! How can I assist you today?",
     "recentCommands": [
       "npm install",
       "npm run build"
@@ -224,6 +224,26 @@
       "ts": "2026-04-14T17:33:47.785Z",
       "event": "turn_completed",
       "userInputPreview": "hello"
+    },
+    {
+      "ts": "2026-04-15T17:32:29.226Z",
+      "event": "turn_completed",
+      "userInputPreview": "new where added?"
+    },
+    {
+      "ts": "2026-04-15T17:33:28.559Z",
+      "event": "turn_completed",
+      "userInputPreview": "how powerful did you feel now?"
+    },
+    {
+      "ts": "2026-04-15T17:34:49.366Z",
+      "event": "turn_completed",
+      "userInputPreview": "okay exit"
+    },
+    {
+      "ts": "2026-04-16T08:09:24.653Z",
+      "event": "turn_completed",
+      "userInputPreview": "hello?"
     }
   ]
 }

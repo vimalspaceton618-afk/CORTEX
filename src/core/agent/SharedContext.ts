@@ -11,6 +11,21 @@ type SessionContext = {
     lastUserInput?: string;
     lastAssistantOutput?: string;
 };
+type WorkflowStepStatus = {
+    stepId: string;
+    status: 'planned' | 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+    updatedAt: string;
+    note?: string;
+};
+type WorkflowRunRecord = {
+    runId: string;
+    workflowId: string;
+    status: string;
+    startedAt: string;
+    updatedAt: string;
+    lastError?: string;
+    steps: WorkflowStepStatus[];
+};
 
 export class SharedContext {
     static getContextFile(): string {
@@ -104,5 +119,40 @@ export class SharedContext {
         }
         if (!lines.length) return '';
         return `\n\n[SESSION MEMORY]\n${lines.join('\n')}\n[/SESSION MEMORY]\n`;
+    }
+
+    static upsertWorkflowRun(record: WorkflowRunRecord) {
+        const runs = (this.get('workflowRuns') || []) as WorkflowRunRecord[];
+        const existing = runs.find((x) => x.runId === record.runId);
+        if (existing) {
+            Object.assign(existing, record, { updatedAt: new Date().toISOString() });
+        } else {
+            runs.push({ ...record, updatedAt: new Date().toISOString() });
+        }
+        this.set('workflowRuns', runs.slice(-100));
+    }
+
+    static updateWorkflowStep(runId: string, step: WorkflowStepStatus) {
+        const runs = (this.get('workflowRuns') || []) as WorkflowRunRecord[];
+        const run = runs.find((x) => x.runId === runId);
+        if (!run) return;
+        const existing = run.steps.find((s) => s.stepId === step.stepId);
+        if (existing) {
+            Object.assign(existing, step, { updatedAt: new Date().toISOString() });
+        } else {
+            run.steps.push({ ...step, updatedAt: new Date().toISOString() });
+        }
+        run.updatedAt = new Date().toISOString();
+        this.set('workflowRuns', runs.slice(-100));
+    }
+
+    static markWorkflowError(runId: string, error: string) {
+        const runs = (this.get('workflowRuns') || []) as WorkflowRunRecord[];
+        const run = runs.find((x) => x.runId === runId);
+        if (!run) return;
+        run.status = 'failed';
+        run.lastError = error;
+        run.updatedAt = new Date().toISOString();
+        this.set('workflowRuns', runs.slice(-100));
     }
 }
