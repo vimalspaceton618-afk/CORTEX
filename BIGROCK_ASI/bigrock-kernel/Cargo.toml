@@ -1,0 +1,12 @@
+[package]
+name = "bigrock-kernel"
+version = "0.1.0"
+edition = "2021"
+authors = ["CORTEX Architect"]
+description = "Ring-0 No_STD Kernel abstraction for Bigrock ASI"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# We will use purely #![no_std] crates for the hypervisor memory wall

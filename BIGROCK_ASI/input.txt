@@ -1,0 +1,2 @@
+first find the energy of a 400nm photon then determine if P AND NOT P is a tautology
+/exit

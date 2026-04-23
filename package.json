@@ -1,20 +1,24 @@
 {
   "name": "cortex",
-  "version": "1.0.0",
-  "description": "<div align=\"center\">",
+  "version": "4.0.0",
+  "description": "CORTEX — Unified Sovereign Intelligence Infrastructure. Private local AI for sensitive codebases.",
   "main": "dist/cli.js",
   "bin": {
     "cortex": "./dist/cli.js"
   },
   "scripts": {
-    "build": "tsc",
-    "start": "node ./dist/cli.js"
+    "build:bigrock": "cd BIGROCK_ASI && npm run build",
+    "build:cortex": "tsc",
+    "build": "npm run build:bigrock && npm run build:cortex",
+    "start": "node ./dist/cli.js",
+    "boot": "node boot.js",
+    "boot:beast": "node boot.js --beast"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vimalspaceton618-afk/CORTEX.git"
   },
-  "keywords": [],
+  "keywords": ["ai", "local", "air-gapped", "agent", "cognition", "security", "enterprise"],
   "author": "SpaceTon",
   "license": "UNLICENSED",
   "type": "module",

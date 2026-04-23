@@ -53,3 +53,8 @@ pretrained_store/
 cortex_data/
 synthetic_dataset/
 agent_traces/
+
+# Models
+*.gguf
+models/
+

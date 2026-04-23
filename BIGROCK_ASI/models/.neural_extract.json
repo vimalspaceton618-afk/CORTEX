@@ -1,0 +1,215 @@
+{
+  "fingerprint": {
+    "source_model": "Phi-3-mini-4k-instruct-q4.gguf",
+    "source_file": "e:\\CORTEX\\BIGROCK_ASI\\models\\Phi-3-mini-4k-instruct-q4.gguf",
+    "source_size_bytes": 2393231072,
+    "architecture": "phi3",
+    "vocab_size": 32064,
+    "embedding_dim": 3072,
+    "n_layers": 32,
+    "n_heads": 32,
+    "context_length": 4096,
+    "total_parameters": 3821079552,
+    "quantization_type": "Q3_K_M",
+    "extracted_at": 1776911895264,
+    "extraction_time_ms": 2160
+  },
+  "layer_dna_summary": [
+    {
+      "layer": 0,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 1,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 2,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 3,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 4,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 5,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 6,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 7,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 8,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 9,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 10,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 11,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 12,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 13,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 14,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 15,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 16,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 17,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 18,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 19,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 20,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 21,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 22,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 23,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 24,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 25,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 26,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 27,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 28,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 29,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 30,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    },
+    {
+      "layer": 31,
+      "attn_q_norm": 0,
+      "attn_k_norm": 0,
+      "ffn_gate_norm": 0
+    }
+  ],
+  "metadata": {
+    "general_name": "Phi3",
+    "tokenizer_model": "llama"
+  }
+}

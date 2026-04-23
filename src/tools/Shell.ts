@@ -61,11 +61,27 @@ export class ShellTool extends Tool {
             return `[WORKDIR ERROR]: ${error.message}`;
         }
 
+        // ──── BIGROCK SECURITY REFLECTION ────
+        // (Instantiated here for audit; in production this would come from the kernel context)
+        // @ts-ignore
+        const { SecurityProcessor } = await import('../../BIGROCK_ASI/dist/core/SecurityProcessor.js');
+        const auditor = new SecurityProcessor();
+        const report = auditor.auditCommand(command);
+
+        let approvalMsg = `[CORTEX ORCHESTRATOR] Wants to run:\n  > ${command}\nIn directory: ${cwd}\nTimeout: ${timeoutMs}ms`;
+        
+        if (report.risk !== 'low') {
+            const icon = report.risk === 'critical' ? '☢️' : '⚠️';
+            approvalMsg = `\n${icon} [SECURITY REFLECTION: ${report.risk.toUpperCase()}]\n` +
+                          `  Reason: ${report.reason}\n\n` + 
+                          approvalMsg;
+        }
+
         // ENFORCED UI APPROVAL BARRIER
-        const approved = await requestConfirmation(`[CORTEX ORCHESTRATOR] Wants to run:\n  > ${command}\nIn directory: ${cwd}\nTimeout: ${timeoutMs}ms\nAllow execution? (Y/n)`);
+        const approved = await requestConfirmation(`${approvalMsg}\n\nAllow execution? (Y/n)`);
         
         if (!approved) {
-            return "[USER OVERRIDE]: Command execution was denied. Do not retry this command without changing your approach.";
+            return "[USER OVERRIDE]: Command execution was denied based on security reflection. Do not retry this command without changing your approach.";
         }
 
         try {

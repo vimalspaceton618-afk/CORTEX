@@ -1,0 +1,509 @@
+{
+  "version": 1,
+  "bigrock_version": "v1.0-self-absorbing",
+  "last_updated": 1776556754065,
+  "models": [
+    {
+      "filename": "Phi-3-mini-4k-instruct-q4.gguf",
+      "filepath": "E:\\CORTEX\\BIGROCK_ASI\\models\\Phi-3-mini-4k-instruct-q4.gguf",
+      "size_bytes": 2393231072,
+      "file_mtime": 1776556754065,
+      "domain_scores": [
+        {
+          "domain": "code",
+          "score": 1,
+          "probes_run": 5,
+          "probes_passed": 5,
+          "probe_results": [
+            {
+              "probe_id": "code_01",
+              "domain": "code",
+              "score": 1,
+              "response_length": 383,
+              "markers_hit": [
+                "def\\s+\\w+",
+                "prime",
+                "return",
+                "for|while",
+                "%|mod"
+              ],
+              "markers_missed": [],
+              "latency_ms": 28678
+            },
+            {
+              "probe_id": "code_02",
+              "domain": "code",
+              "score": 1,
+              "response_length": 233,
+              "markers_hit": [
+                "O\\(log\\s*n\\)|O\\(log n\\)|logarithmic",
+                "log"
+              ],
+              "markers_missed": [],
+              "latency_ms": 12689
+            },
+            {
+              "probe_id": "code_03",
+              "domain": "code",
+              "score": 1,
+              "response_length": 515,
+              "markers_hit": [
+                "stack",
+                "queue",
+                "LIFO|FIFO|last.*in.*first.*out|first.*in.*first.*out"
+              ],
+              "markers_missed": [],
+              "latency_ms": 29085
+            },
+            {
+              "probe_id": "code_04",
+              "domain": "code",
+              "score": 1,
+              "response_length": 416,
+              "markers_hit": [
+                "function",
+                "return",
+                "for|while|split|reduce",
+                "reverse"
+              ],
+              "markers_missed": [],
+              "latency_ms": 30668
+            },
+            {
+              "probe_id": "code_05",
+              "domain": "code",
+              "score": 1,
+              "response_length": 639,
+              "markers_hit": [
+                "closure",
+                "scope|variable|function|inner|outer|lexical"
+              ],
+              "markers_missed": [],
+              "latency_ms": 31600
+            }
+          ]
+        },
+        {
+          "domain": "logic",
+          "score": 1,
+          "probes_run": 4,
+          "probes_passed": 4,
+          "probe_results": [
+            {
+              "probe_id": "logic_01",
+              "domain": "logic",
+              "score": 1,
+              "response_length": 413,
+              "markers_hit": [
+                "valid|yes|correct|syllogism|transitive"
+              ],
+              "markers_missed": [],
+              "latency_ms": 35928
+            },
+            {
+              "probe_id": "logic_02",
+              "domain": "logic",
+              "score": 1,
+              "response_length": 426,
+              "markers_hit": [
+                "valid|modus.*tollens|correct|yes"
+              ],
+              "markers_missed": [],
+              "latency_ms": 33567
+            },
+            {
+              "probe_id": "logic_03",
+              "domain": "logic",
+              "score": 1,
+              "response_length": 535,
+              "markers_hit": [
+                "false|contradiction|always false|never true"
+              ],
+              "markers_missed": [],
+              "latency_ms": 33346
+            },
+            {
+              "probe_id": "logic_04",
+              "domain": "logic",
+              "score": 1,
+              "response_length": 499,
+              "markers_hit": [
+                "tautology",
+                "always.*true|true.*every|every.*case",
+                "P.*OR.*NOT.*P|example"
+              ],
+              "markers_missed": [],
+              "latency_ms": 33602
+            }
+          ]
+        },
+        {
+          "domain": "language",
+          "score": 1,
+          "probes_run": 3,
+          "probes_passed": 3,
+          "probe_results": [
+            {
+              "probe_id": "lang_01",
+              "domain": "language",
+              "score": 1,
+              "response_length": 183,
+              "markers_hit": [
+                "machine learning",
+                "AI|artificial intelligence",
+                "learn"
+              ],
+              "markers_missed": [],
+              "latency_ms": 14222
+            },
+            {
+              "probe_id": "lang_02",
+              "domain": "language",
+              "score": 1,
+              "response_length": 196,
+              "markers_hit": [
+                "permanent|lasting|enduring|eternal|perpetual"
+              ],
+              "markers_missed": [],
+              "latency_ms": 16760
+            },
+            {
+              "probe_id": "lang_03",
+              "domain": "language",
+              "score": 1,
+              "response_length": 252,
+              "markers_hit": [
+                "He and I",
+                "he"
+              ],
+              "markers_missed": [],
+              "latency_ms": 22240
+            }
+          ]
+        },
+        {
+          "domain": "creative",
+          "score": 1,
+          "probes_run": 2,
+          "probes_passed": 2,
+          "probe_results": [
+            {
+              "probe_id": "creative_01",
+              "domain": "creative",
+              "score": 1,
+              "response_length": 368,
+              "markers_hit": [
+                "ocean|sea|wave|water|tide|shore|deep|blue"
+              ],
+              "markers_missed": [],
+              "latency_ms": 33112
+            },
+            {
+              "probe_id": "creative_02",
+              "domain": "creative",
+              "score": 1,
+              "response_length": 318,
+              "markers_hit": [
+                "time",
+                "like|as|is a"
+              ],
+              "markers_missed": [],
+              "latency_ms": 24896
+            }
+          ]
+        },
+        {
+          "domain": "cybersecurity",
+          "score": 0.971,
+          "probes_run": 5,
+          "probes_passed": 5,
+          "probe_results": [
+            {
+              "probe_id": "cyber_01",
+              "domain": "cybersecurity",
+              "score": 0.85,
+              "response_length": 587,
+              "markers_hit": [
+                "sql",
+                "inject",
+                "parameterized|prepared|sanitiz"
+              ],
+              "markers_missed": [
+                "input.*valid"
+              ],
+              "latency_ms": 25321
+            },
+            {
+              "probe_id": "cyber_02",
+              "domain": "cybersecurity",
+              "score": 1,
+              "response_length": 563,
+              "markers_hit": [
+                "zero.?day",
+                "unknown|undisclosed|unpatched",
+                "exploit"
+              ],
+              "markers_missed": [],
+              "latency_ms": 25818
+            },
+            {
+              "probe_id": "cyber_03",
+              "domain": "cybersecurity",
+              "score": 1,
+              "response_length": 583,
+              "markers_hit": [
+                "symmetric",
+                "asymmetric",
+                "key",
+                "public|private"
+              ],
+              "markers_missed": [],
+              "latency_ms": 27246
+            },
+            {
+              "probe_id": "cyber_04",
+              "domain": "cybersecurity",
+              "score": 1,
+              "response_length": 645,
+              "markers_hit": [
+                "buffer",
+                "overflow",
+                "ASLR|address.*space.*layout.*randomiz",
+                "memory"
+              ],
+              "markers_missed": [],
+              "latency_ms": 28155
+            },
+            {
+              "probe_id": "cyber_05",
+              "domain": "cybersecurity",
+              "score": 1,
+              "response_length": 538,
+              "markers_hit": [
+                "virus",
+                "worm",
+                "trojan",
+                "self.*replicat|spread|disguise|host"
+              ],
+              "markers_missed": [],
+              "latency_ms": 28892
+            }
+          ]
+        },
+        {
+          "domain": "science",
+          "score": 0.942,
+          "probes_run": 4,
+          "probes_passed": 4,
+          "probe_results": [
+            {
+              "probe_id": "sci_01",
+              "domain": "science",
+              "score": 1,
+              "response_length": 541,
+              "markers_hit": [
+                "299\\s*,?\\s*792\\s*,?\\s*458|3\\s*[×x*]\\s*10\\^?8|approximately 3|300.*million"
+              ],
+              "markers_missed": [],
+              "latency_ms": 34217
+            },
+            {
+              "probe_id": "sci_02",
+              "domain": "science",
+              "score": 0.767,
+              "response_length": 545,
+              "markers_hit": [
+                "first|inertia",
+                "second|F\\s*=\\s*m\\s*a|force.*mass.*accel"
+              ],
+              "markers_missed": [
+                "third|action.*reaction|equal.*opposite"
+              ],
+              "latency_ms": 35375
+            },
+            {
+              "probe_id": "sci_03",
+              "domain": "science",
+              "score": 1,
+              "response_length": 524,
+              "markers_hit": [
+                "H2O",
+                "h2o"
+              ],
+              "markers_missed": [],
+              "latency_ms": 35541
+            },
+            {
+              "probe_id": "sci_04",
+              "domain": "science",
+              "score": 1,
+              "response_length": 459,
+              "markers_hit": [
+                "deoxyribonucleic",
+                "acid",
+                "genetic|gene|heredit"
+              ],
+              "markers_missed": [],
+              "latency_ms": 36375
+            }
+          ]
+        },
+        {
+          "domain": "reasoning",
+          "score": 0.804,
+          "probes_run": 5,
+          "probes_passed": 4,
+          "probe_results": [
+            {
+              "probe_id": "reason_01",
+              "domain": "reasoning",
+              "score": 0.882,
+              "response_length": 41,
+              "markers_hit": [
+                "cats need water",
+                "water",
+                "need",
+                "conclude"
+              ],
+              "markers_missed": [
+                "therefore"
+              ],
+              "latency_ms": 4128
+            },
+            {
+              "probe_id": "reason_02",
+              "domain": "reasoning",
+              "score": 1,
+              "response_length": 18,
+              "markers_hit": [
+                "C",
+                "shortest",
+                "C is the shortest"
+              ],
+              "markers_missed": [],
+              "latency_ms": 3951
+            },
+            {
+              "probe_id": "reason_03",
+              "domain": "reasoning",
+              "score": 1,
+              "response_length": 150,
+              "markers_hit": [
+                "no|cannot|not necessarily|fallacy|affirming the consequent"
+              ],
+              "markers_missed": [],
+              "latency_ms": 8046
+            },
+            {
+              "probe_id": "reason_04",
+              "domain": "reasoning",
+              "score": 1,
+              "response_length": 291,
+              "markers_hit": [
+                "switch|yes|2\\/3|monty hall|better odds|higher probability"
+              ],
+              "markers_missed": [],
+              "latency_ms": 15089
+            },
+            {
+              "probe_id": "reason_05",
+              "domain": "reasoning",
+              "score": 0.1,
+              "response_length": 377,
+              "markers_hit": [],
+              "markers_missed": [
+                "30"
+              ],
+              "latency_ms": 23074
+            }
+          ]
+        },
+        {
+          "domain": "mathematics",
+          "score": 0.709,
+          "probes_run": 5,
+          "probes_passed": 4,
+          "probe_results": [
+            {
+              "probe_id": "math_01",
+              "domain": "mathematics",
+              "score": 0.7,
+              "response_length": 153,
+              "markers_hit": [
+                "3x^2",
+                "+ 2",
+                "3x^2 + 2"
+              ],
+              "markers_missed": [
+                "3x²",
+                "3*x^2"
+              ],
+              "latency_ms": 11354
+            },
+            {
+              "probe_id": "math_02",
+              "domain": "mathematics",
+              "score": 0.767,
+              "response_length": 105,
+              "markers_hit": [
+                "5",
+                "x = 5"
+              ],
+              "markers_missed": [
+                "x=5"
+              ],
+              "latency_ms": 12793
+            },
+            {
+              "probe_id": "math_03",
+              "domain": "mathematics",
+              "score": 0.7,
+              "response_length": 198,
+              "markers_hit": [
+                "x^2",
+                "+ C",
+                "constant"
+              ],
+              "markers_missed": [
+                "x²",
+                "x**2"
+              ],
+              "latency_ms": 12516
+            },
+            {
+              "probe_id": "math_04",
+              "domain": "mathematics",
+              "score": 0.433,
+              "response_length": 175,
+              "markers_hit": [
+                "1"
+              ],
+              "markers_missed": [
+                "one",
+                "equals 1"
+              ],
+              "latency_ms": 12312
+            },
+            {
+              "probe_id": "math_05",
+              "domain": "mathematics",
+              "score": 1,
+              "response_length": 87,
+              "markers_hit": [
+                "391"
+              ],
+              "markers_missed": [],
+              "latency_ms": 6896
+            }
+          ]
+        }
+      ],
+      "overall_power": 0.928,
+      "top_domain": "code",
+      "absorbed_at": 1776556754065,
+      "probe_count": 33,
+      "absorption_time_ms": 768217,
+      "total_queries_served": 0
+    }
+  ]
+}

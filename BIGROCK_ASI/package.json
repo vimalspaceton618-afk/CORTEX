@@ -1,0 +1,24 @@
+{
+  "name": "bigrock-asi",
+  "version": "1.0.0",
+  "description": "Bigrock_v1 Neuro-Symbolic Artificial Superintelligence Framework",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "benchmark": "node --experimental-modules dist/benchmark/run.js",
+    "api": "node --experimental-modules dist/api/run.js",
+    "shell": "node --experimental-modules dist/index.js"
+  },
+  "author": "CORTEX Architect",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "mathjs": "^13.0.0",
+    "node-llama-cpp": "^3.0.0-beta.47"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "typescript": "^5.4.5"
+  }
+}
