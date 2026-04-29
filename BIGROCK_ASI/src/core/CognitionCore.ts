@@ -13,6 +13,9 @@ import { QueryDecomposer } from '../reasoning/QueryDecomposer.js';
 import { SLMEngine } from '../neural/SLMEngine.js';
 import { LLMDevourer } from '../absorb/LLMDevourer.js';
 import { MythosEngine } from '../mythos/MythosEngine.js';
+import { CyberSecurityKing } from '../defense/CyberSecurityKing.js';
+import { AdaptiveBrain } from '../brain/AdaptiveBrain.js';
+import { SystemSovereign } from '../brain/SystemSovereign.js';
 import type { Thought, ThoughtResult, ThinkMode } from '../core/types.js';
 import { randomUUID } from 'crypto';
 
@@ -63,6 +66,9 @@ export class CognitionCore {
     private slm: SLMEngine;
     private absorber: LLMDevourer;
     private mythos: MythosEngine;
+    private cyberKing: CyberSecurityKing;
+    private brain: AdaptiveBrain;
+    private sovereign: SystemSovereign;
     private thought_log: Thought[] = [];
 
     constructor() {
@@ -72,6 +78,9 @@ export class CognitionCore {
         this.absorber = new LLMDevourer();
         this.symbolic = new SymbolicEngine(this.memory);
         this.mythos = new MythosEngine();
+        this.cyberKing = new CyberSecurityKing();
+        this.brain = new AdaptiveBrain();
+        this.sovereign = new SystemSovereign(this.brain);
 
         // Wire up NeuroBridge with a Neural Clarifier (SLM)
         this.bridge = new NeuroBridge(async (input) => {
@@ -94,6 +103,8 @@ Return ONLY the single word domain name or "unknown".`;
 
         // Wire up Native Dense Vector Embeddings for Episodic Memory
         this.episodic.setEncoder((text: string) => {
+            const fused = this.brain.getFusion().fuseEncode(text);
+            if (fused && fused.fused_vector) return fused.fused_vector;
             return this.absorber.getNeuralExtract().encode(text);
         });
     }
@@ -272,7 +283,9 @@ Return ONLY the single word domain name or "unknown".`;
             // ──── LAYER 4.5: PREDICTIVE FALLBACK (Safety Net) ────────
             mode = 'predictive';
             fallbackTriggered = true;
-            if (this.absorber.hasAbsorbedModels()) {
+            if (this.brain.getHive().hasModels()) {
+                result = await this.brain.think(raw_input, domain);
+            } else if (this.absorber.hasAbsorbedModels()) {
                 result = await this.absorber.devour(raw_input, domain, 
                     `The symbolic engine encountered an issue (${err.message}). Provide a concise, logic-driven response based on your absorbed knowledge. Domain: ${domain}`
                 );
@@ -384,4 +397,7 @@ Return ONLY the single word domain name or "unknown".`;
     public getDecomposer(): QueryDecomposer { return this.decomposer; }
     public getAbsorber(): LLMDevourer { return this.absorber; }
     public getMythos(): MythosEngine { return this.mythos; }
+    public getCyberKing(): CyberSecurityKing { return this.cyberKing; }
+    public getBrain(): AdaptiveBrain { return this.brain; }
+    public getSovereign(): SystemSovereign { return this.sovereign; }
 }

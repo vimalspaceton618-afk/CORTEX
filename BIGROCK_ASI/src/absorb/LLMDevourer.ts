@@ -319,6 +319,144 @@ export class LLMDevourer {
     // ═══════════════════════════════════════════════════════════════════════════
 
     /**
+     * DEVOUR CHAT STREAM: Open-AI compatible streaming for the Agent Swarm
+     * Takes messages and optional tools, yields OpenAI-style chunks.
+     */
+    public async *devourChatStream(messages: any[], toolsConfig?: any, domain: string = 'general'): AsyncGenerator<any, void, unknown> {
+        const champion = this.findChampion(domain);
+        if (!champion) {
+            throw new Error(`No absorbed model available for domain "${domain}".`);
+        }
+
+        const session = await this.ensureModelLoaded(champion.profile.filepath);
+        if (!session) {
+            throw new Error(`Failed to load champion model: ${champion.profile.filename}`);
+        }
+
+        // Format prompt
+        let prompt = "";
+        
+        // Inject tools into the system prompt if available
+        if (toolsConfig && toolsConfig.tools && toolsConfig.tools.length > 0) {
+            prompt += `[SYSTEM]: You are a powerful AI agent. You have access to the following tools:\n`;
+            prompt += JSON.stringify(toolsConfig.tools, null, 2) + '\n';
+            prompt += `To use a tool, you MUST output a JSON block exactly like this:\n`;
+            prompt += `<tool_call> {"name": "tool_name", "arguments": {"arg1": "val1"}} </tool_call>\n\n`;
+        }
+
+        for (const msg of messages) {
+            if (msg.role === 'system') {
+                prompt += `[SYSTEM]: ${msg.content}\n`;
+            } else if (msg.role === 'user') {
+                prompt += `[USER]: ${msg.content}\n`;
+            } else if (msg.role === 'assistant') {
+                prompt += `[ASSISTANT]: ${msg.content}\n`;
+                if (msg.tool_calls) {
+                    for (const tc of msg.tool_calls) {
+                        prompt += `[TOOL CALL]: ${tc.function.name}(${tc.function.arguments})\n`;
+                    }
+                }
+            } else if (msg.role === 'tool') {
+                prompt += `[TOOL RESULT for ${msg.name}]: ${msg.content}\n`;
+            }
+        }
+        prompt += `[ASSISTANT]:`;
+
+        let resolveNext: (() => void) | null = null;
+        let chunkQueue: string[] = [];
+        let isDone = false;
+        let error: any = null;
+
+        session.prompt(prompt, {
+            temperature: this.config.temperature,
+            maxTokens: this.config.serve_max_tokens,
+            onTextChunk(chunk: string) {
+                chunkQueue.push(chunk);
+                if (resolveNext) {
+                    resolveNext();
+                    resolveNext = null;
+                }
+            }
+        }).then(() => {
+            isDone = true;
+            if (resolveNext) resolveNext();
+        }).catch((err: any) => {
+            isDone = true;
+            error = err;
+            if (resolveNext) resolveNext();
+        });
+
+        let buffer = "";
+        let inToolCall = false;
+
+        while (!isDone || chunkQueue.length > 0) {
+            if (chunkQueue.length > 0) {
+                const chunk = chunkQueue.shift()!;
+                buffer += chunk;
+
+                // Simple interceptor for <tool_call> tags
+                if (!inToolCall && buffer.includes('<tool_call>')) {
+                    const parts = buffer.split('<tool_call>');
+                    if (parts[0]) {
+                        yield { choices: [{ delta: { content: parts[0] } }] };
+                    }
+                    buffer = parts[1] || "";
+                    inToolCall = true;
+                }
+
+                if (inToolCall && buffer.includes('</tool_call>')) {
+                    const parts = buffer.split('</tool_call>');
+                    const toolJsonStr = parts[0].trim();
+                    try {
+                        const tc = JSON.parse(toolJsonStr);
+                        yield {
+                            choices: [{
+                                delta: {
+                                    tool_calls: [{
+                                        index: 0,
+                                        id: `call_${Date.now()}`,
+                                        type: 'function',
+                                        function: {
+                                            name: tc.name,
+                                            arguments: JSON.stringify(tc.arguments)
+                                        }
+                                    }]
+                                }
+                            }]
+                        };
+                    } catch (e) {
+                        // If parsing fails, just yield it as text
+                        yield { choices: [{ delta: { content: `<tool_call>${toolJsonStr}</tool_call>` } }] };
+                    }
+                    buffer = parts[1] || "";
+                    inToolCall = false;
+                }
+
+                if (!inToolCall && buffer.length > 50) {
+                    // Flush buffer safely if not looking for a tool call
+                    yield { choices: [{ delta: { content: buffer } }] };
+                    buffer = "";
+                }
+            } else {
+                await new Promise<void>(resolve => { resolveNext = resolve; });
+            }
+        }
+
+        if (buffer.length > 0 && !inToolCall) {
+            yield { choices: [{ delta: { content: buffer } }] };
+        }
+
+        if (error) {
+            throw error;
+        }
+
+        champion.last_used = Date.now();
+        champion.queries_this_session++;
+        this.total_queries++;
+        this.memory.recordQuery(champion.profile.filename);
+    }
+
+    /**
      * DEVOUR a query: route it to the strongest absorbed model for the given domain.
      * This is the primary entry point for the CognitionCore.
      */

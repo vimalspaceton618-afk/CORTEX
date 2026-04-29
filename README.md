@@ -1,31 +1,32 @@
 <div align="center">
 
-<img src="https://via.placeholder.com/150/000000/F13E93/?text=CORTEX" width="120" alt="CORTEX Logo" />
-
 # ⚡ CORTEX
 
-**Unified Sovereign Intelligence Infrastructure.**  
-**Private local AI for sensitive codebases. One word. One product. BEASTMODE.**
+**Sovereign Intelligence Infrastructure.**  
+**Private local AI for sensitive codebases.**
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18.0.0-green.svg)](https://nodejs.org/)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](#)
 [![Version: 4.0](https://img.shields.io/badge/Version-4.0.0-brightgreen.svg)](#)
-[![BEASTMODE](https://img.shields.io/badge/BEASTMODE-Ready-red.svg)](#)
 
 </div>
 
 ---
 
+## 🚀 Recent Updates (v4.0.1)
+- **Workspace Cleanup**: Removed legacy research documents, scratch files, and debug artifacts to minimize footprint.
+- **Windows Compatibility**: Fixed `EPERM` initialization bug in `SharedContext.ts` when running the CLI from a Windows drive root (`C:\`).
+
+---
+
 ## 📑 Table of Contents
 - [📖 What is CORTEX?](#-what-is-cortex)
-- [⚡ BEASTMODE](#-beastmode)
 - [🧠 The Cognition Core](#-the-cognition-core)
 - [🤖 The Agent Swarm](#-the-agent-swarm)
 - [🏗️ Architecture](#-architecture)
 - [🛠️ Installation & Setup](#-installation--setup)
 - [💻 Usage](#-usage)
-- [💰 Enterprise Pricing](#-enterprise-pricing)
 - [🛡️ Security](#-security)
 - [📄 License](#-license)
 
@@ -33,71 +34,43 @@
 
 ## 📖 What is CORTEX?
 
-**CORTEX** is a unified sovereign intelligence infrastructure that replaces cloud-dependent AI tools for teams that cannot send proprietary code to the cloud — defense, healthcare, finance, and government.
+**CORTEX** is a local-first AI development environment that combines a **multi-agent terminal interface** with a **neuro-symbolic cognition engine** (BIGROCK ASI) in a single process.
 
-It combines a **multi-agent terminal OS** with a **neuro-symbolic cognition core** (BIGROCK ASI) into a single process with zero HTTP latency. Everything runs locally on your hardware. Your code, your keys, your architecture never leave your machine.
+It is designed for teams that need AI-assisted development without sending proprietary code to third-party cloud services — defense contractors, healthcare organizations, financial firms, and government agencies.
 
-### What Makes CORTEX Different
+### Core Capabilities
 
-| Feature | GitHub Copilot | Cursor | **CORTEX** |
-|:---|:---|:---|:---|
-| Air-gapped execution | ❌ | ❌ | **✓ 100% local** |
-| Deterministic proofs | ❌ | ❌ | **✓ Symbolic engine** |
-| Threat intelligence | ❌ | ❌ | **✓ 12-layer Mythos** |
-| Self-absorbing LLMs | ❌ | ❌ | **✓ LLM Devourer** |
-| Autonomous reasoning | ❌ | ❌ | **✓ ARL (proactive)** |
-| Zero data leakage | ❌ | ❌ | **✓ Zero-trust** |
-| BEASTMODE | ❌ | ❌ | **⚡ YES** |
-
----
-
-## ⚡ BEASTMODE
-
-BEASTMODE cranks ALL subsystems to maximum power simultaneously:
-
-| Subsystem | Normal | BEASTMODE |
-|:---|:---|:---|
-| ARL Patrol Cycle | 20s | **5s** |
-| ARL Curiosity Cycle | 60s | **15s** |
-| Neural Think Depth | 10 layers | **50 layers** |
-| Self-Reflection | 3-pass | **7-pass deep** |
-| Memory Retention | 2 min | **10 min** |
-| Agent Autonomy | 8 iterations | **25 iterations** |
-| Absorber | Manual | **Auto-scan** |
-| Mythos Engine | Passive | **Continuous hunting** |
-
-Activate with `/beast` in the terminal or `--beast` flag:
-```bash
-cortex --beast
-# or
-node boot.js --beast
-```
+- **100% Local Execution**: All cognition runs on your hardware. No HTTP calls to external AI services for STEM computation.
+- **Deterministic STEM Proofs**: Symbolic math, physics simulation, and formal logic — with full proof traces and 100% confidence.
+- **Local LLM Absorption**: Drop any GGUF model into the `models/` directory. CORTEX probes it, profiles its domain strengths, and routes queries to the best model.
+- **Multi-Agent Development**: 7 specialized agents (Developer, Explorer, Planner, Quality, DevOps, Browser, Network) with automatic task routing.
+- **Cloud Fallback**: When local models aren't available, CORTEX routes to cloud LLMs (OpenRouter/OpenAI) with automatic retry and model cascade.
 
 ---
 
 ## 🧠 The Cognition Core
 
-CORTEX's intelligence is powered by **BIGROCK ASI** — a neuro-symbolic artificial superintelligence framework running **in-process** with zero latency.
+CORTEX's local intelligence is powered by **BIGROCK ASI** — a neuro-symbolic engine that runs **in-process** with zero network latency.
 
 ### Engines
 
-| Engine | What It Does | Confidence |
+| Engine | What It Does | Output |
 |:---|:---|:---|
-| **Symbolic Math Engine** | Deterministic algebraic computation with proof traces | 100% |
-| **Physics Engine** | 6-domain simulation (Newton, Einstein, Quantum, Thermo, EM, Orbital) | 100% |
-| **Formal Logic Prover** | Exhaustive truth-table evaluation of propositional logic | 100% |
-| **Liquid Neural Network** | ODE-based continuous learning with RK4 solver | Adaptive |
-| **LLM Devourer** | Self-absorbs local GGUF models, profiles by domain, routes queries | Adaptive |
-| **Mythos Threat Engine** | 12-layer cybersecurity threat ontology with autonomous "Myth Gap" discovery | 90%+ |
-| **Episodic Memory Bank** | TF-IDF + neural dense vector semantic long-term memory | N/A |
-| **Self-Reflection Engine** | 7-check metacognitive auditor that verifies its own outputs | N/A |
-| **ARL (Autonomous Reasoning)** | Proactive self-directed learning — Bigrock thinks on its own | N/A |
+| **Symbolic Math Engine** | Algebraic evaluation, differentiation, solving — with step-by-step proof traces | Deterministic |
+| **Physics Engine** | First-principles simulation across 6 domains (Newtonian, Relativistic, Quantum, Thermodynamics, Electromagnetism, Orbital) | Deterministic |
+| **Formal Logic Prover** | Exhaustive truth-table evaluation of propositional logic expressions | Deterministic |
+| **ODE Neural Network** | Liquid Time-Constant network with RK4 integration and Hebbian learning — adapts during inference | Adaptive |
+| **LLM Devourer** | Scans local GGUF models, probes domain performance, profiles and ranks them | Adaptive |
+| **Mythos Threat Engine** | 12-domain cybersecurity threat ontology — maps architecture descriptions to known TTPs | Heuristic |
+| **Episodic Memory** | TF-IDF + dense vector semantic search over conversation and thought history | N/A |
+| **Self-Reflection Engine** | 7-check metacognitive auditor that adjusts confidence of outputs | N/A |
+| **Autonomous Reasoning Loop** | Background cycles: system health patrol, self-directed curiosity queries, memory consolidation | N/A |
 
 ### Pipeline
 
 ```
 Input → Security Scan → DAG Decomposition → Hypervisor Sandbox
-  → [Symbolic | Physics | Logic | Neural | Kernel | 🍽️ Devourer]
+  → [Symbolic | Physics | Logic | Neural | Kernel | LLM Devourer]
   → Self-Reflection → Episodic Memory → Output
 ```
 
@@ -105,26 +78,22 @@ Input → Security Scan → DAG Decomposition → Hypervisor Sandbox
 
 ## 🤖 The Agent Swarm
 
-CORTEX utilizes a robust crew of specialized sub-agents:
-
 | Agent | Responsibility |
 | :--- | :--- |
-| **🔍 ExploreAgent** | Rapid filesystem indexing and structural analysis |
-| **📐 PlanAgent** | High-level system design and architectural mapping |
-| **💻 DeveloperAgent** | Direct code authoring and application building |
-| **🧪 QualityAgent** | Rigorous testing, linting, and bug isolation |
-| **🚀 DevOpsAgent** | Dependency management and infrastructure |
-| **🌐 BrowserAgent** | Headless web navigation and data extraction |
-| **🔗 NetworkAgent** | External API and workflow orchestration |
-| **⚔️ MythosAgent** | Autonomous cybersecurity threat intelligence |
+| **ExploreAgent** | Filesystem reading and codebase analysis |
+| **PlanAgent** | Task decomposition and planning |
+| **DeveloperAgent** | Code authoring, editing, and refactoring |
+| **QualityAgent** | Testing, linting, and verification |
+| **DevOpsAgent** | Infrastructure and dependency management |
+| **BrowserAgent** | Headless web navigation and data extraction |
+| **NetworkAgent** | API testing and network diagnostics |
 
-### Smart Routing
+### Routing Logic
 
-CORTEX automatically routes queries to the optimal brain:
-- **STEM queries** (math, physics, logic) → Local CognitionCore (100% deterministic, zero latency)
-- **Security queries** → Mythos Engine + CognitionCore
-- **Language/creative tasks** → Cloud LLM (OpenAI/OpenRouter) with fallback cascade
-- **System queries** → Kernel Interface (direct OS telemetry)
+- **STEM queries** (math, physics, logic) → Local CognitionCore (deterministic, zero latency)
+- **System queries** (CPU, memory, processes) → Kernel Interface (direct OS telemetry)
+- **Code/language tasks** → Cloud LLM with automatic 12-model fallback cascade
+- **Security analysis** → Mythos Engine + CyberSecurityKing (10-engine scan)
 
 ---
 
@@ -144,7 +113,7 @@ CORTEX automatically routes queries to the optimal brain:
 │  └──────────────────────────────────────────────────────────────┘     │
 │        ↕                                                               │
 │  ┌─ React Ink TTY ─────────────────────────────────────────────┐     │
-│  │  Chat UI │ /beast BEASTMODE │ /dashboard Live Telemetry      │     │
+│  │  Chat UI │ /beast │ /dashboard Live Telemetry                │     │
 │  └──────────────────────────────────────────────────────────────┘     │
 │                                                                        │
 └────────────────────────────────────────────────────────────────────────┘
@@ -170,13 +139,10 @@ npm install
 cd BIGROCK_ASI && npm install && cd ..
 ```
 
-### 4. Build & Boot (Unified)
+### 4. Build & Boot
 ```bash
-# One command to rule them all
+# Compiles BIGROCK ASI + CORTEX, then launches the terminal
 npm run boot
-
-# Or with BEASTMODE
-npm run boot:beast
 ```
 
 ### 5. Install Globally (Optional)
@@ -193,25 +159,24 @@ npm install -g .
 | Command | Action |
 | :--- | :--- |
 | `/help` | Display all commands and agents |
-| `/beast` | Toggle BEASTMODE (all systems MAX power) |
+| `/beast` | Toggle BEASTMODE (cranks all subsystem configs to max) |
 | `/dashboard` | Toggle live real-time system monitoring |
 | `/status` | Full system status report |
 | `/think <query>` | Force route through local CognitionCore |
-| `/arl` | Show ARL metrics |
-| `/arl start` | Start Autonomous Reasoning Loop |
-| `/arl stop` | Stop Autonomous Reasoning Loop |
-| `/absorb` | Scan and absorb local GGUF models |
-| `/mythos <arch>` | Run Mythos threat analysis on architecture |
-| `/demo` | Run the YC killer demo sequence |
+| `/arl` | Show Autonomous Reasoning Loop metrics |
+| `/arl start` | Start ARL background cycles |
+| `/arl stop` | Stop ARL background cycles |
+| `/brain eat` | Scan and absorb local GGUF models |
+| `/brain` | Show active brain info and model status |
+| `/brain iq` | Show Collective Intelligence Quotient breakdown |
+| `/brain wisdom` | Show domain coverage heat map |
+| `/mythos <arch>` | Run Mythos threat analysis on an architecture description |
+| `/cyberscan` | Full spectrum 10-engine security scan |
+| `/cyberheal` | Generate autonomous remediation scripts |
+| `/demo` | Run the automated showcase sequence |
 | `/health` | Show runtime readiness checks |
-| `/exit` | Quit the application |
-
-### Headless Mode
-```bash
-cortex --run "escape velocity from Earth" --json
-cortex --run "map the src directory" --yes
-cortex --run "/status" --beast
-```
+| `/setup` | Brain configuration wizard |
+| `/exit` | Quit |
 
 ### Examples
 ```
@@ -222,43 +187,25 @@ cortex> /think p AND q IMPLIES p
 → [Formal Logic Prover] TAUTOLOGY (always true) — 100% Confidence
 
 cortex> /mythos A Node.js API connected to S3 and Stripe
-→ ⚠️ 8 MYTH GAPS DETECTED (Cloud Security, Web & API, DevSecOps...)
+→ ⚠️ 8 Myth Gaps detected (Cloud Security, Web & API, DevSecOps...)
 
 cortex> Refactor the authentication module to use JWT
-→ [Cloud LLM → DeveloperAgent → QualityAgent verification]
+→ [AgentManager → DeveloperAgent → QualityAgent auto-verification]
 ```
-
----
-
-## 💰 Enterprise Pricing
-
-| Tier | Price | For |
-|:---|:---|:---|
-| **CORTEX Core** | $99/dev/month | Individual developers, small teams |
-| **CORTEX Pro** | $2,000/month | Teams of 10, full agent swarm + memory |
-| **CORTEX Enterprise** | $8K-15K/month | Defense, banks, hospitals — full stack + SLA |
-| **CORTEX Sovereign** | Custom contract | Government/military — air-gapped deployment |
-
-Contact: founders@cortex-local.ai
 
 ---
 
 ## 🛡️ Security
 
-**CORTEX is designed for enterprise integration.**
-
-- **Zero-Trust Architecture**: 6-layer security processor with capability-based access control
-- **Integrity Chain**: Every thought is cryptographically hashed into an immutable chain (AES-256-GCM)
-- **Mythos Threat Engine**: 12-layer cybersecurity ontology with autonomous "Myth Gap" discovery
-- **Process Hypervisor**: Sandboxed execution with capability tokens
-- **Air-Gapped**: 100% local execution — no data ever leaves your machine
-- **Stress Tested**: Formally verified under enterprise-grade prompt injections and paradox DoS attacks
-
-Your credentials are securely stored at: `~/.cortexcli/config.json`
+- **Input Sanitization**: SecurityProcessor scans all inputs before processing (injection, prompt attack, path traversal detection)
+- **Integrity Chain**: Every thought is cryptographically hashed (AES-256-GCM) into a sequential chain — tampering is detectable
+- **Process Hypervisor**: All engine executions are sandboxed with capability-based access tokens
+- **Mythos Threat Ontology**: 12-domain threat taxonomy mapping architecture descriptions to known TTPs
+- **Air-Gap Compatible**: The CognitionCore, physics engine, math engine, and logic prover require zero network access
 
 ---
 
 ## 📄 License
 
 **© 2026 SpaceTon.**  
-This software is strictly **UNLICENSED** and proprietary. Any unauthorized copying, distribution, modification, or utilization of the CORTEX application source code is strictly prohibited. For inquiries regarding enterprise deployment, please refer to the internal documentation.
+This software is **proprietary**. Unauthorized copying, distribution, or modification is prohibited.

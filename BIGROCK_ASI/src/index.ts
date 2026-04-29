@@ -70,6 +70,12 @@ async function main(): Promise<void> {
     const learning = core.getLearning();
     const episodic = core.getEpisodicMemory();
     const absorber = core.getAbsorber();
+    const brain = core.getBrain();
+    const sovereign = core.getSovereign();
+
+    // Boot the AdaptiveBrain and Sovereign
+    await brain.wake();
+    sovereign.assumeControl();
 
     console.log(chalk.bold('\n⚡ SYSTEM BOOT REPORT:'));
     console.log(chalk.dim(`  Platform      : ${telemetry.os.platform} | ${telemetry.os.release}`));
@@ -97,32 +103,45 @@ async function main(): Promise<void> {
     console.log(chalk.dim(`  Physics       : 6-domain simulator (Newton, Einstein, Quantum, Thermo, EM, Orbital)`));
     console.log(chalk.dim(`  Logic         : Formal Propositional Prover (truth table exhaustive)`));
 
+    console.log(chalk.bold('\n🛡️  CYBERSECURITY KING:'));
+    console.log(chalk.dim(`  Stack         : 10-Engine Sovereign Defense (Threat Severity 7.2 → 9.2)`));
+    console.log(chalk.dim(`  Engines       : PolymorphicDefense | ZeroDayPatcher | RansomwareGuard`));
+    console.log(chalk.dim(`                  PQCAuditor | SupplyChainScanner | DeepfakeProtocol`));
+    console.log(chalk.dim(`                  IoTVulnScanner | InsiderThreat | WorkforceAI | CloudConfig`));
+    console.log(chalk.dim(`  Compliance    : DPDP Act 2023 | NIST PQC | HIPAA | PCI-DSS | EU CRA`));
+    console.log(chalk.dim(`  Sectors       : Defense | Healthcare | Finance | Government`));
+
     console.log(chalk.bold('\n🪞 META-COGNITION & REASONING:'));
     console.log(chalk.dim(`  Reflection    : 7-check Self-Reflection Engine (deep multi-pass)`));
     console.log(chalk.dim(`  Decomposer    : DAG query splintering (multi-step dependency auth)`));
     console.log(chalk.dim(`  ARL Loop      : ${arl.isRunning() ? chalk.green('ACTIVE (Proactive Mode)') : chalk.yellow('STOPPED (Reactive Mode)')}`));
 
-    console.log(chalk.bold('\n🍽️  SELF-ABSORBING ENGINE:'));
-    const discovered = absorber.getAbsorbedProfiles();
-    if (discovered.length > 0) {
-        console.log(chalk.dim(`  Models Absorbed: ${discovered.length}`));
-        console.log(chalk.dim(`  Total Power    : ${absorber.getTotalPower().toFixed(3)}`));
-        const champions = absorber.getDomainChampions();
-        for (const [domain, champ] of champions) {
-            console.log(chalk.dim(`  🏆 ${domain}: ${champ.model} (${champ.score.toFixed(3)})`));
+    console.log(chalk.bold('\n🧠 ADAPTIVE BRAIN:'));
+    const brainStatus = brain.getStatus();
+    const hiveStats = brainStatus.hive_status;
+    console.log(chalk.dim(`  Collective IQ  : ${brainStatus.collective_iq} (${hiveStats.total_models} models, ${Object.keys(hiveStats.domain_coverage).length} domains)`));
+    if (hiveStats.total_models > 0) {
+        for (const m of hiveStats.cpi_ranking) {
+            const barLength = Math.min(20, Math.round((m.cpi/100) * 20));
+            const bar = '█'.repeat(barLength);
+            const empty = '░'.repeat(Math.max(0, 20 - barLength));
+            console.log(chalk.dim(`  ${m.filename.padEnd(15).slice(0,15)}: ${bar}${empty} ${m.cpi}% (${m.tier.toUpperCase()})`));
         }
+        console.log(chalk.dim(`  Fusion Status  : ${brainStatus.fusion_status.fusion_quality > 0 ? 'ACTIVE' : 'INACTIVE'} (unified embedding: ${brainStatus.fusion_status.total_vocab_size} tokens, ${brainStatus.fusion_status.embedding_dim}D)`));
     } else {
-        console.log(chalk.dim(`  Status         : ${chalk.yellow('No models absorbed yet. Run /absorb to devour LLMs.')}`));
-        console.log(chalk.dim(`  Models Dir     : models/ (drop .gguf files here)`));
+        console.log(chalk.yellow(`  Status         : No models absorbed. Drop .gguf files in models/ and run /brain eat.`));
     }
 
     console.log(chalk.dim(`\n${'─'.repeat(70)}`));
     console.log(chalk.dim('Commands: /status | /audit | /chain | /neural | /memory | /arl | /exit'));
-    console.log(chalk.dim('          /absorb | /absorbed | /devour <query>'));
+    console.log(chalk.dim('          /brain | /brain eat | /brain think <q> | /brain wisdom'));
+    console.log(chalk.dim('          /cyberscan | /cyberking'));
     console.log(chalk.dim('Try: "escape velocity from Earth"        (Physics Engine)'));
     console.log(chalk.dim('Try: "first 5e14 * h then euler^pi"      (DAG Decomposer)'));
     console.log(chalk.dim('Try: "p AND q IMPLIES p"                 (Formal Logic)'));
-    console.log(chalk.dim('Try: "explain SQL injection"              (🍽️ Self-Absorbing)'));
+    console.log(chalk.dim('Try: /brain think "explain SQL injection" (🧠 Adaptive Brain)'));
+    console.log(chalk.dim('Try: /cyberscan                           (🛡️ Full Spectrum Scan)'));
+    console.log(chalk.dim('Try: /cyberheal                           (💊 Autonomous Solvers)'));
 
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
     const prompt = () => rl.question(chalk.bold.redBright('\n▶ BIGROCK: '), async (input) => {
@@ -230,6 +249,127 @@ async function main(): Promise<void> {
             console.log(chalk.dim('    "(p IMPLIES q) AND (q IMPLIES r) IMPLIES (p IMPLIES r)"'));
             return prompt();
         }
+
+        // ──── CYBERSECURITY KING COMMANDS ─────────────────────────────────────
+        if (input === '/cyberking') {
+            const manifest = core.getCyberKing().getEngineManifest();
+            console.log();
+            for (const line of manifest) {
+                console.log(chalk.bold.redBright(line));
+            }
+            return prompt();
+        }
+
+        if (input === '/cyberscan') {
+            console.log(chalk.bold.redBright('\n🛡️  CYBERSECURITY KING — FULL SPECTRUM SCAN'));
+            console.log(chalk.dim('  Activating all 10 engines... Target: CORTEX codebase\n'));
+
+            const projectPath = process.cwd();
+            const result = core.getCyberKing().fullSpectrumScan(projectPath);
+
+            // Header
+            const gradeColor = result.composite_risk_grade === 'A' ? chalk.greenBright
+                : result.composite_risk_grade === 'B' ? chalk.green
+                : result.composite_risk_grade === 'C' ? chalk.yellowBright
+                : result.composite_risk_grade === 'D' ? chalk.redBright
+                : chalk.bgRedBright;
+            console.log(chalk.bold(`  Composite Grade: `) + gradeColor(` ${result.composite_risk_grade} `) + chalk.dim(` (Score: ${result.composite_risk_score}) | ${result.scan_duration_ms}ms`));
+            console.log(chalk.dim('  ' + '─'.repeat(66)));
+
+            // Summary lines
+            for (const line of result.summary) {
+                console.log(chalk.dim(`  ${line}`));
+            }
+
+            // Top priorities
+            if (result.top_priorities.length > 0) {
+                console.log(chalk.bold('\n  ⚡ TOP PRIORITIES:'));
+                for (const p of result.top_priorities) {
+                    console.log(chalk.redBright(`  ${p}`));
+                }
+            }
+
+            // Engine details
+            const zd = result.engine_results.zero_day_patcher;
+            if (zd.vulnerabilities_found.length > 0) {
+                console.log(chalk.bold('\n  🔓 ZERO-DAY VULNERABILITIES:'));
+                for (const v of zd.vulnerabilities_found.slice(0, 5)) {
+                    const sevColor = v.cve.severity === 'critical' ? chalk.bgRedBright : v.cve.severity === 'high' ? chalk.redBright : chalk.yellow;
+                    console.log(chalk.dim(`  `) + sevColor(` ${v.cve.severity.toUpperCase()} `) + chalk.dim(` ${v.cve.id} — ${v.cve.package}@${v.installed_version} → ${v.cve.fixed_version}`));
+                }
+                if (zd.vulnerabilities_found.length > 5) console.log(chalk.dim(`  ... and ${zd.vulnerabilities_found.length - 5} more.`));
+            }
+
+            const pqc = result.engine_results.pqc_auditor;
+            if (pqc.inventory.risk_summary.harvest_now_decrypt_later > 0) {
+                console.log(chalk.bold('\n  🔐 QUANTUM THREATS (Harvest Now, Decrypt Later):'));
+                for (const inst of pqc.inventory.instances.filter(i => i.quantum_risk === 'HARVEST_NOW_DECRYPT_LATER').slice(0, 5)) {
+                    console.log(chalk.redBright(`  ⚠ ${inst.file}:${inst.line} — ${inst.algorithm} (${inst.usage_context}) → ${inst.nist_replacement}`));
+                }
+            }
+
+            const sai = result.engine_results.polymorphic_defense.shadow_ai;
+            if (sai.instances.length > 0) {
+                console.log(chalk.bold('\n  👁️ SHADOW AI DETECTIONS:'));
+                for (const inst of sai.instances.slice(0, 3)) {
+                    console.log(chalk.yellowBright(`  ⚠ ${inst.file}:${inst.line} — ${inst.pattern} (${inst.risk})`));
+                }
+            }
+
+            console.log(chalk.dim('\n  ' + '─'.repeat(66)));
+            console.log(chalk.dim('  Run /cyberking for engine manifest | Engines: 10/10 ACTIVE'));
+            return prompt();
+        }
+
+        if (input === '/cyberheal') {
+            console.log(chalk.bold.greenBright('\n🛡️  CYBERSECURITY KING — BEASTMODE ACTIVE SOLVER'));
+            console.log(chalk.dim('  Executing autonomous remediation across all 10 engines...\n'));
+
+            const projectPath = process.cwd();
+            const scripts = core.getCyberKing().runSolvers(projectPath, false);
+
+            if (scripts.length === 0) {
+                console.log(chalk.green('  ✅ No vulnerabilities detected. Systems are secure.'));
+                return prompt();
+            }
+
+            console.log(chalk.bold(`  Generated ${scripts.length} applicable remediation scripts.`));
+
+            for (const script of scripts) {
+                console.log(chalk.cyan(`\n  [SCRIPT ID: ${script.script_id}]`));
+                for (const action of script.actions) {
+                    console.log(chalk.bold.yellowBright(`    ► TARGET: ${action.file}:${action.line}`));
+                    console.log(chalk.white(`      Action: ${action.description}`));
+                    console.log(chalk.dim(`      Standard: ${action.nist_standard}`));
+                    console.log(chalk.redBright(`      - ${action.original_code}`));
+                    console.log(chalk.greenBright(`      + ${action.suggested_code.replace(/\n/g, '\n        ')}`));
+                }
+            }
+
+            console.log(chalk.dim('\n  ' + '─'.repeat(66)));
+            console.log(chalk.dim('  Run /cyberheal --auto to apply zero-touch fixes immediately.'));
+            return prompt();
+        }
+
+        if (input === '/cyberheal --auto') {
+            console.log(chalk.bold.redBright('\n🛡️  CYBERSECURITY KING — ZERO-TOUCH EXECUTION'));
+            console.log(chalk.dim('  Applying critical patches autonomously...\n'));
+
+            const projectPath = process.cwd();
+            const scripts = core.getCyberKing().runSolvers(projectPath, true);
+            let totalApplied = 0;
+
+            for (const script of scripts) {
+                if (script.is_zero_touch_ready) {
+                    totalApplied += script.actions.length;
+                }
+            }
+
+            console.log(chalk.greenBright(`  ✅ Successfully applied ${totalApplied} zero-touch remediation actions.`));
+            console.log(chalk.yellow(`  ⚠️  Some critical actions (e.g., Network Quarantine, Account Suspension) require manual /cyberheal approval.`));
+            return prompt();
+        }
+
         if (input === '/reflect') {
             const log = core.getThoughtLog();
             if (!log.length) {
@@ -254,69 +394,41 @@ async function main(): Promise<void> {
             return prompt();
         }
 
-        // ──── SELF-ABSORBING COMMANDS ────────────────────────────────────────
-        if (input === '/absorb' || input === '/absorb --force') {
-            const force = input.includes('--force');
-            console.log(chalk.bold.magenta(`\n🍽️  SELF-ABSORBING ENGINE: ${force ? 'FORCE ' : ''}Scanning and devouring LLMs...`));
-            try {
-                const report = await absorber.absorbAll(force);
-                console.log(chalk.bold.greenBright(`\n🍽️  ABSORPTION COMPLETE:`));
-                console.log(chalk.dim(`  Models Found    : ${report.total_models_found}`));
-                console.log(chalk.dim(`  Models Absorbed : ${report.total_models_absorbed}`));
-                console.log(chalk.dim(`  Models Failed   : ${report.total_models_failed}`));
-                console.log(chalk.dim(`  Total Power     : ${report.total_power.toFixed(3)}`));
-                console.log(chalk.dim(`  Time            : ${report.absorption_time_ms}ms`));
-                if (report.domain_champions.size > 0) {
-                    console.log(chalk.bold.cyan('\n  🏆 DOMAIN CHAMPIONS:'));
-                    for (const [domain, champ] of report.domain_champions) {
-                        const bar = '█'.repeat(Math.round(champ.score * 20));
-                        const empty = '░'.repeat(20 - Math.round(champ.score * 20));
-                        console.log(chalk.dim(`    ${domain.padEnd(15)} ${bar}${empty} ${(champ.score * 100).toFixed(1)}%  (${champ.model})`));
-                    }
-                }
-            } catch (e: any) {
-                console.error(chalk.red(`[ABSORPTION ERROR]: ${e.message}`));
-            }
+        // ──── ADAPTIVE BRAIN COMMANDS ────────────────────────────────────────
+        if (input === '/brain') {
+            const bs = brain.getStatus();
+            const hs = bs.hive_status;
+            console.log(chalk.bold.magenta('\n🧠 ADAPTIVE BRAIN STATUS:'));
+            console.log(chalk.dim(`  Collective IQ   : ${bs.collective_iq}`));
+            console.log(chalk.dim(`  Total Models    : ${hs.total_models} (HOT: ${hs.hot_models}, WARM: ${hs.warm_models}, COLD: ${hs.cold_models})`));
+            console.log(chalk.dim(`  Memory Usage    : ${hs.memory_used_gb.toFixed(2)}GB / Ceiling: ${hs.memory_ceiling_gb.toFixed(2)}GB`));
+            console.log(chalk.dim(`  Total Power     : ${hs.total_power}`));
+            console.log(chalk.dim(`  Fusion Quality  : ${(bs.fusion_status.fusion_quality * 100).toFixed(1)}% (Vocab: ${bs.fusion_status.total_vocab_size})`));
             return prompt();
         }
 
-        if (input === '/absorbed') {
-            const profiles = absorber.getAbsorbedProfiles();
-            const statuses = absorber.getModelStatus();
-            if (!profiles.length) {
-                console.log(chalk.yellow('\n[DEVOURER]: No models absorbed. Run /absorb first.'));
-            } else {
-                console.log(chalk.bold.magenta(`\n🍽️  ABSORBED MODELS (${profiles.length}):`));
-                for (const s of statuses) {
-                    const icon = s.loaded ? '🟢' : '🟡';
-                    console.log(chalk.dim(`\n  ${icon} ${s.filename}`));
-                    console.log(chalk.dim(`    Status: ${s.status} | Power: ${s.power.toFixed(3)} | Top: ${s.top_domain} | Queries: ${s.queries}`));
-
-                    const profile = profiles.find(p => p.filename === s.filename);
-                    if (profile) {
-                        console.log(chalk.dim('    Domain Scores:'));
-                        for (const ds of profile.domain_scores) {
-                            const bar = '█'.repeat(Math.round(ds.score * 20));
-                            const empty = '░'.repeat(20 - Math.round(ds.score * 20));
-                            const passed = `${ds.probes_passed}/${ds.probes_run}`;
-                            console.log(chalk.dim(`      ${ds.domain.padEnd(15)} ${bar}${empty} ${(ds.score * 100).toFixed(1)}%  (${passed} probes passed)`));
-                        }
-                    }
-                }
-                console.log(chalk.dim(`\n  Total Power: ${absorber.getTotalPower().toFixed(3)} | Total Queries: ${absorber.getTotalQueries()}`));
-            }
-            return prompt();
-        }
-
-        if (input.startsWith('/devour ')) {
-            const q = input.replace('/devour ', '');
-            console.log(chalk.magenta(`\n🍽️  Force-routing through Self-Absorbing Engine...`));
-            if (!absorber.hasAbsorbedModels()) {
-                console.log(chalk.yellow('[DEVOURER]: No absorbed models. Run /absorb first.'));
+        if (input === '/brain eat') {
+            console.log(chalk.bold.magenta(`\n🧠 ADAPTIVE BRAIN: Scanning for new GGUFs to eat...`));
+            const discovered = brain.getHive().scanModels();
+            if (discovered.length === 0) {
+                console.log(chalk.yellow(`  No GGUF models found in models/ directory.`));
                 return prompt();
             }
             try {
-                const result = await absorber.devour(q, 'language');
+                for (const model of discovered) {
+                    await brain.eat(model.filepath, true);
+                }
+            } catch (e: any) {
+                console.error(chalk.red(`[BRAIN ERROR]: ${e.message}`));
+            }
+            return prompt();
+        }
+
+        if (input.startsWith('/brain think ')) {
+            const q = input.replace('/brain think ', '').trim();
+            console.log(chalk.magenta(`\n🧠 Routing to AdaptiveBrain...`));
+            try {
+                const result = await brain.think(q);
                 console.log(chalk.bold.greenBright('\n✅ DEVOURED RESULT:'));
                 console.log(chalk.white(result.value));
                 if (result.proof_trace?.length) {
@@ -325,7 +437,30 @@ async function main(): Promise<void> {
                 }
                 console.log(chalk.dim(`Confidence: ${(result.confidence * 100).toFixed(1)}%`));
             } catch (e: any) {
-                console.error(chalk.red(`[DEVOUR ERROR]: ${e.message}`));
+                console.error(chalk.red(`[BRAIN ERROR]: ${e.message}`));
+            }
+            return prompt();
+        }
+
+        if (input === '/brain wisdom') {
+            const hs = brain.getStatus().hive_status;
+            console.log(chalk.bold.cyan('\n🧠 DOMAIN WISDOM MAP:'));
+            for (const [domain, info] of Object.entries(hs.domain_coverage) as [string, any][]) {
+                const bar = '█'.repeat(Math.round(info.score * 20));
+                const empty = '░'.repeat(20 - Math.round(info.score * 20));
+                console.log(chalk.dim(`  ${domain.padEnd(15)} ${bar}${empty} ${(info.score * 100).toFixed(1)}% (${info.champion})`));
+            }
+            return prompt();
+        }
+
+        if (input === '/brain iq') {
+            const bs = brain.getStatus();
+            const hs = bs.hive_status;
+            console.log(chalk.bold.cyan('\n🧠 COLLECTIVE INTELLIGENCE QUOTIENT (CIQ) BREAKDOWN:'));
+            console.log(chalk.dim(`  Total CIQ       : ${bs.collective_iq}`));
+            console.log(chalk.dim(`  Models Contrib  : ${hs.total_models}`));
+            for (const m of hs.cpi_ranking) {
+                console.log(chalk.dim(`    • ${m.filename}: +${m.cpi} CPI`));
             }
             return prompt();
         }

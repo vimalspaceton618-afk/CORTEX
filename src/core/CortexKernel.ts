@@ -98,6 +98,10 @@ export interface SystemMetrics {
 
     // Mythos
     mythos_layers: number;
+
+    // Brain
+    collective_iq?: number;
+    fusion_quality?: number;
 }
 
 // ─── CORTEX KERNEL ──────────────────────────────────────────────────────────
@@ -289,6 +293,39 @@ export class CortexKernel {
         return this.core ? this.core.getAbsorber() : null;
     }
 
+    public getBrain(): any {
+        return this.core ? this.core.getBrain() : null;
+    }
+
+    public getSovereign(): any {
+        return this.core ? this.core.getSovereign() : null;
+    }
+
+    public getCyberKing(): any {
+        return this.core ? this.core.getCyberKing() : null;
+    }
+
+    public hasNativeBrain(): boolean {
+        return this.booted && this.core && this.getBrain() && this.getBrain().getHive().hasModels();
+    }
+
+    public getNativeBrainInfo(): any {
+        if (!this.hasNativeBrain()) return null;
+        const status = this.getBrain().getStatus();
+        const profiles = status.hive_status.cpi_ranking;
+        if (profiles.length === 0) return null;
+        const champ = profiles[0];
+        return {
+            filename: champ.filename,
+            power: champ.cpi,
+            top_domain: Object.keys(status.hive_status.domain_coverage)[0] || 'general',
+            champions: Object.fromEntries(
+                Object.entries(status.hive_status.domain_coverage).map(([k, v]: [string, any]) => [k, v.champion])
+            ),
+            collective_iq: status.collective_iq
+        };
+    }
+
     public getMythos(): any {
         return this.core ? this.core.getMythos() : null;
     }
@@ -345,7 +382,9 @@ export class CortexKernel {
             models_absorbed: 0,
             absorber_total_power: 0,
             mythos_layers: 12,
-        };
+            collective_iq: 0,
+            fusion_quality: 0
+        } as any;
 
         if (!this.core) return base;
 
@@ -389,10 +428,21 @@ export class CortexKernel {
             base.memory_cells = this.core.getMemory().getCellCount();
             base.episodic_records = this.core.getEpisodicMemory().size();
 
-            // Absorber
-            const absorber = this.core.getAbsorber();
-            base.models_absorbed = absorber.getAbsorbedProfiles().length;
-            base.absorber_total_power = absorber.getTotalPower();
+            // Absorber / Brain
+            const brain = this.core.getBrain();
+            if (brain) {
+                const bStat = brain.getStatus();
+                base.models_absorbed = bStat.hive_status.total_models;
+                base.absorber_total_power = bStat.hive_status.total_power;
+                base.collective_iq = bStat.collective_iq;
+                base.fusion_quality = bStat.fusion_status.fusion_quality;
+            } else {
+                const absorber = this.core.getAbsorber();
+                base.models_absorbed = absorber.getAbsorbedProfiles().length;
+                base.absorber_total_power = absorber.getTotalPower();
+                base.collective_iq = 0;
+                base.fusion_quality = 0;
+            }
 
         } catch (e) {
             // Graceful degradation — return partial metrics

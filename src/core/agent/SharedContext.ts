@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import * as os from 'os';
 
 const MAX_AUDIT_LOG = 200;
 
@@ -27,9 +28,25 @@ type WorkflowRunRecord = {
     steps: WorkflowStepStatus[];
 };
 
+/**
+ * Check if a path is a filesystem root (e.g. "C:\", "/", "D:\").
+ * mkdirSync on a root path causes EPERM on Windows.
+ */
+function isDriveRoot(p: string): boolean {
+    const resolved = path.resolve(p);
+    return resolved === path.parse(resolved).root;
+}
+
 export class SharedContext {
     static getContextFile(): string {
         const baseRoot = process.env.CORTEX_WORKSPACE_ROOT?.trim() || process.cwd();
+
+        // Guard: if running from a drive root (C:\, D:\, /), use ~/.cortex/ instead
+        if (isDriveRoot(baseRoot)) {
+            const fallback = path.join(os.homedir(), '.cortex', 'state.json');
+            return fallback;
+        }
+
         const candidate = path.join(baseRoot, '.cortex');
         if (fs.existsSync(candidate)) {
             try {
@@ -45,10 +62,15 @@ export class SharedContext {
     }
 
     static init() {
-        const contextFile = this.getContextFile();
-        if (!fs.existsSync(contextFile)) {
-            fs.mkdirSync(path.dirname(contextFile), { recursive: true });
-            fs.writeFileSync(contextFile, JSON.stringify({}, null, 2));
+        try {
+            const contextFile = this.getContextFile();
+            if (!fs.existsSync(contextFile)) {
+                fs.mkdirSync(path.dirname(contextFile), { recursive: true });
+                fs.writeFileSync(contextFile, JSON.stringify({}, null, 2));
+            }
+        } catch (err: any) {
+            // Gracefully handle permission errors — don't crash the entire app
+            console.error(`[SharedContext] Warning: Could not initialize context file: ${err.message}`);
         }
     }
 

@@ -13,6 +13,14 @@ import { Box, Text } from 'ink';
 import { CortexKernel } from './core/CortexKernel.js';
 import type { SystemMetrics } from './core/CortexKernel.js';
 
+// ─── Native Brain Info Type ──────────────────────────────────────────────────
+interface NativeBrainInfo {
+    filename: string;
+    power: number;
+    top_domain: string;
+    champions: Record<string, { model: string; score: number }>;
+}
+
 // ─── Progress Bar Helper ────────────────────────────────────────────────────
 
 function ProgressBar({ value, max, width = 20, color = 'green' }: { value: number; max: number; width?: number; color?: string }) {
@@ -33,6 +41,7 @@ function ProgressBar({ value, max, width = 20, color = 'green' }: { value: numbe
 
 export const Dashboard = ({ onExit }: { onExit: () => void }) => {
     const [metrics, setMetrics] = useState<SystemMetrics | null>(null);
+    const [nativeBrain, setNativeBrain] = useState<NativeBrainInfo | null>(null);
     const [tick, setTick] = useState(0);
 
     useEffect(() => {
@@ -40,6 +49,7 @@ export const Dashboard = ({ onExit }: { onExit: () => void }) => {
             try {
                 if (CortexKernel.isBooted()) {
                     setMetrics(CortexKernel.get().getRealtimeMetrics());
+                    setNativeBrain(CortexKernel.get().getNativeBrainInfo());
                 }
             } catch {
                 // Kernel not booted yet
@@ -89,6 +99,45 @@ export const Dashboard = ({ onExit }: { onExit: () => void }) => {
                     <ProgressBar value={m.memory_used_gb} max={m.memory_total_gb || 16} color="magenta" />
                 </Box>
                 <Text color="gray" dimColor>{m.cpu_model.slice(0, 50)} │ {m.cpu_threads} threads │ {m.cpu_freq_mhz} MHz</Text>
+            </Box>
+
+            {/* ── Active Brain ── */}
+            <Box borderStyle="single" borderColor={nativeBrain ? 'greenBright' : 'yellow'} paddingX={1} flexDirection="column" marginTop={0}>
+                <Box flexDirection="row" justifyContent="space-between">
+                    <Text color={nativeBrain ? 'greenBright' : 'yellowBright'} bold>
+                        🧠 ACTIVE BRAIN: {nativeBrain ? 'LOCAL SOVEREIGN AI' : 'CLOUD AI'}
+                    </Text>
+                    {nativeBrain && (
+                        <Text color="gray" dimColor>Power: {nativeBrain.power.toFixed(3)}</Text>
+                    )}
+                </Box>
+                {nativeBrain ? (
+                    <Box flexDirection="column">
+                        <Box>
+                            <Text color="gray">Model : </Text>
+                            <Text color="white">{nativeBrain.filename.replace('.gguf', '')}</Text>
+                        </Box>
+                        <Box>
+                            <Text color="gray">Top   : </Text>
+                            <Text color="cyanBright">{nativeBrain.top_domain.toUpperCase()}</Text>
+                        </Box>
+                        {Object.keys(nativeBrain.champions).length > 0 && (
+                            <Box flexDirection="row" flexWrap="wrap" gap={1} marginTop={0}>
+                                {Object.entries(nativeBrain.champions).slice(0, 4).map(([domain, champ]) => (
+                                    <Box key={domain}>
+                                        <Text color="gray">{domain.slice(0,4)}: </Text>
+                                        <Text color="green">{(champ.score * 100).toFixed(0)}%</Text>
+                                    </Box>
+                                ))}
+                            </Box>
+                        )}
+                    </Box>
+                ) : (
+                    <Box flexDirection="column">
+                        <Text color="gray">Using cloud LLM via OpenRouter/OpenAI</Text>
+                        <Text color="gray" dimColor>Run /absorb with a .gguf model to enable local AI</Text>
+                    </Box>
+                )}
             </Box>
 
             {/* ── Cognition ── */}

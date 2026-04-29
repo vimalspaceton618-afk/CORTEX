@@ -3,6 +3,7 @@ import * as dotenv from 'dotenv';
 import { ToolRegistry } from '../../tools/registry.js';
 import { Message } from '../llm.js';
 import { getPluginManager } from '../../plugins/index.js';
+import { CortexKernel } from '../CortexKernel.js';
 
 dotenv.config();
 
@@ -47,12 +48,12 @@ function resolveModelForAgent(agentName: string): string {
 }
 
 type BrainCandidate = {
-    provider: 'local' | 'cloud';
+    provider: 'local' | 'cloud' | 'native';
     model: string;
     apiKey: string;
     baseURL?: string;
 };
-type BrainProvider = 'local' | 'cloud';
+type BrainProvider = 'local' | 'cloud' | 'native';
 
 // ──────────────────────────────────────────────────────────────
 //  ERROR FIXER:  Classifies error types for smart recovery
@@ -126,6 +127,28 @@ function resolveLocalModelForAgent(agentName: string): string {
 
 function getBrainCandidates(agentName: string): BrainCandidate[] {
     const mode = (process.env.BRAIN_MODE || 'cloud').toLowerCase();
+    
+    // Check if we have a native brain available
+    let hasNative = false;
+    let nativeModelName = 'native-gguf';
+    try {
+        if (CortexKernel.isBooted() && CortexKernel.get().getAbsorber().hasAbsorbedModels()) {
+            hasNative = true;
+            const profiles = CortexKernel.get().getAbsorber().getAbsorbedProfiles();
+            if (profiles.length > 0) {
+                nativeModelName = profiles[0].filename;
+            }
+        }
+    } catch {
+        // Kernel not ready yet
+    }
+
+    const native: BrainCandidate = {
+        provider: 'native',
+        model: nativeModelName,
+        apiKey: 'local'
+    };
+    
     const cloud: BrainCandidate = {
         provider: 'cloud',
         model: resolveModelForAgent(agentName),
@@ -138,14 +161,14 @@ function getBrainCandidates(agentName: string): BrainCandidate[] {
         apiKey: process.env.LOCAL_API_KEY || 'local-key',
         baseURL: process.env.LOCAL_BASE_URL || 'http://127.0.0.1:11434/v1'
     };
-    const providerMap: Record<BrainProvider, BrainCandidate> = { local, cloud };
+    const providerMap: Record<BrainProvider, BrainCandidate> = { local, cloud, native };
     const rawRoutingMap = process.env.BRAIN_ROUTING_MAP?.trim();
     if (rawRoutingMap) {
         try {
             const parsed = JSON.parse(rawRoutingMap) as Record<string, BrainProvider[]>;
             const route = parsed[agentName] || parsed['*'];
             if (Array.isArray(route) && route.length > 0) {
-                const normalized = route.filter((x) => x === 'local' || x === 'cloud');
+                const normalized = route.filter((x) => x === 'local' || x === 'cloud' || x === 'native');
                 if (normalized.length > 0) {
                     const deduped = Array.from(new Set(normalized));
                     return deduped.map((provider) => providerMap[provider]);
@@ -155,20 +178,22 @@ function getBrainCandidates(agentName: string): BrainCandidate[] {
             // Ignore malformed routing map and fall back to mode defaults
         }
     }
-    if (mode === 'local') return [local, cloud];
+    
+    // If native brain is available, prioritize it over standard HTTP local
+    if (mode === 'local') return hasNative ? [native, local, cloud] : [local, cloud];
     if (mode === 'hybrid') {
         if (agentName === 'PlanAgent' || agentName === 'ExploreAgent') {
-            return [local, cloud];
+            return hasNative ? [native, local, cloud] : [local, cloud];
         }
         if (agentName === 'DeveloperAgent') {
-            return [cloud, local];
+            return hasNative ? [cloud, native, local] : [cloud, local];
         }
         if (agentName === 'BrowserAgent' || agentName === 'DevOpsAgent') {
-            return [cloud, local];
+            return hasNative ? [cloud, native, local] : [cloud, local];
         }
-        return [local, cloud];
+        return hasNative ? [native, local, cloud] : [local, cloud];
     }
-    return [cloud, local];
+    return hasNative ? [cloud, native, local] : [cloud, local];
 }
 
 // ──────────────────────────────────────────────────────────────
@@ -209,16 +234,43 @@ async function* attemptCandidate(
     toolsConfig: Record<string, any>,
     agentName: string
 ): AsyncGenerator<{ type: 'log'; message: string } | { type: 'stream'; stream: any; label: string }> {
+    if (candidate.provider === 'native') {
+        try {
+            if (!CortexKernel.isBooted()) {
+                throw new Error("CORTEX Kernel is not booted.");
+            }
+            
+            // Heuristic domain mapping for native model
+            let domain = 'code';
+            if (agentName === 'PlanAgent' || agentName === 'ExploreAgent') domain = 'reasoning';
+            
+            const devourer = CortexKernel.get().getAbsorber();
+            const stream = devourer.devourChatStream(messages, toolsConfig, domain);
+            yield { type: 'stream', stream, label: `native:${candidate.model}` };
+            return;
+        } catch (error: any) {
+            yield { type: 'log', message: `[${agentName} NATIVE FALLBACK]: Native brain failed: ${error.message}` };
+            return;
+        }
+    }
+
     const client = getClientFor(candidate.baseURL, candidate.apiKey);
     
     for (let attempt = 0; attempt <= MAX_RETRIES_PER_CANDIDATE; attempt++) {
         try {
-            const stream = await client.chat.completions.create({
-                model: candidate.model,
-                messages,
-                stream: true,
-                ...toolsConfig
-            });
+            const CLOUD_TIMEOUT_MS = 15_000;
+            const timeoutPromise = new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error(`Cloud request timed out after ${CLOUD_TIMEOUT_MS / 1000}s`)), CLOUD_TIMEOUT_MS)
+            );
+            const stream = await Promise.race([
+                client.chat.completions.create({
+                    model: candidate.model,
+                    messages,
+                    stream: true,
+                    ...toolsConfig
+                }),
+                timeoutPromise
+            ]) as any;
             yield { type: 'stream', stream, label: `${candidate.provider}:${candidate.model}` };
             return;  // Success — exit immediately
         } catch (error: any) {
@@ -342,6 +394,17 @@ export abstract class BaseAgent {
             let currentToolCalls: Record<number, any> = {};
 
             try {
+                // Context overflow guard — trim history if it gets too large
+                const MAX_HISTORY_CHARS = 80_000;
+                let totalChars = this.history.reduce((sum, m) => sum + (typeof m.content === 'string' ? m.content.length : 0), 0);
+                if (totalChars > MAX_HISTORY_CHARS) {
+                    // Keep system prompt + last 4 messages
+                    const systemMsg = this.history[0];
+                    const recent = this.history.slice(-4);
+                    this.history = [systemMsg, ...recent];
+                    yield `\n[${this.name}]: Context trimmed to prevent overflow (was ${Math.round(totalChars / 1000)}k chars).\n`;
+                }
+
                 // If there are no tools registered for this agent, don't pass 'tools' key to OpenAI
                 const toolsConfig = this.registry.getToolsSchema().length > 0 
                   ? { tools: this.registry.getToolsSchema() as any } 
@@ -410,7 +473,15 @@ export abstract class BaseAgent {
                         let resultStr = "";
                         if (tool) {
                             try {
-                                const args = JSON.parse(toolCall.function.arguments);
+                                let args: any;
+                                try {
+                                    args = JSON.parse(toolCall.function.arguments || '{}');
+                                } catch (jsonErr: any) {
+                                    resultStr = `[TOOL ARG PARSE ERROR]: Could not parse arguments for tool "${toolName}". Raw: ${String(toolCall.function.arguments).slice(0, 200)}. Error: ${jsonErr.message}`;
+                                    this.history.push({ role: 'tool', tool_call_id: toolCall.id, name: toolName, content: resultStr });
+                                    yield `\n[${this.name} TOOL RESULT]: ${resultStr.slice(0, 100)}...\n`;
+                                    continue;
+                                }
                                 const executionResult = await tool.execute(args, requestConfirmation);
                                 if (executionResult && typeof (executionResult as any)[Symbol.asyncIterator] === 'function') {
                                     for await (const chunk of executionResult as any) {

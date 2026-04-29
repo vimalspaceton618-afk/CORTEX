@@ -96,6 +96,7 @@ export class ProcessHypervisor {
                                              'neural_forward', 'neural_learn', 'kernel_telemetry', 'read_filesystem']);
         this.issueToken('LLMDevourer',      ['read_memory', 'write_memory', 'read_filesystem',
                                              'neural_forward', 'neural_learn']);
+        this.issueToken('CyberSecurityKing', ['read_memory', 'read_filesystem', 'kernel_telemetry']);
         this.appendChain('TOKENS_ISSUED', `${this.tokens.size} capability tokens issued.`);
     }
 
