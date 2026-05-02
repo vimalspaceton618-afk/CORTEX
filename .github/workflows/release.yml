@@ -1,0 +1,48 @@
+name: Release CORTEX
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      - name: Install & Build BIGROCK_ASI
+        working-directory: ./BIGROCK_ASI
+        run: npm ci --no-fund && npm run build
+
+      - name: Install & Build CORTEX
+        run: npm ci --no-fund && npm run build
+
+      - name: Verify Build
+        run: node dist/cli.js --version
+
+      - name: Create Release Tarball
+        run: |
+          tar -czf cortex-${{ github.ref_name }}.tar.gz \
+            --exclude=node_modules \
+            --exclude=.git \
+            --exclude='*.gguf' \
+            .
+
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: cortex-${{ github.ref_name }}.tar.gz
+          generate_release_notes: true
+
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        continue-on-error: true

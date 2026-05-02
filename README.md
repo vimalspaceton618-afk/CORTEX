@@ -123,25 +123,30 @@ Input → Security Scan → DAG Decomposition → Hypervisor Sandbox
 
 ## 🛠️ Installation & Setup
 
-### 1. Prerequisites
-- [Node.js](https://nodejs.org/) (v18.0.0 or higher)
-- [Git](https://git-scm.com/)
+### ⚡ One-Line Install
 
-### 2. Clone the Repository
+**Windows (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/vimalspaceton618-afk/CORTEX/main/install.ps1 | iex
+```
+
+**macOS / Linux:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/vimalspaceton618-afk/CORTEX/main/install.sh | bash
+```
+
+**npm (if Node.js is already installed):**
+```bash
+npm install -g cortex && cortex --setup
+```
+
+### Manual Install
+
 ```bash
 git clone https://github.com/vimalspaceton618-afk/CORTEX.git
 cd CORTEX
-```
-
-### 3. Install Dependencies
-```bash
 npm install
 cd BIGROCK_ASI && npm install && cd ..
-```
-
-### 4. Build & Boot
-```bash
-# Compiles BIGROCK ASI + CORTEX, then launches the terminal
 npm run boot
 ```
 

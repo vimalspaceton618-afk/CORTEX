@@ -4,8 +4,6 @@ __pycache__/
 *$py.class
 *.pyo
 *.egg-info/
-dist/
-build/
 *.egg
 .eggs/
 
@@ -48,13 +46,14 @@ desktop.ini
 *.log
 training_stats_*.json
 
-# Large data directories (stored on Z: drive)
+# Large data directories
 pretrained_store/
 cortex_data/
 synthetic_dataset/
 agent_traces/
+scratch/
 
-# Models
+# Models (large binaries)
 *.gguf
 models/
-
+node_modules

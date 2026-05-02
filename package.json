@@ -6,13 +6,30 @@
   "bin": {
     "cortex": "./dist/cli.js"
   },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "dist/",
+    "BIGROCK_ASI/dist/",
+    "BIGROCK_ASI/package.json",
+    "BIGROCK_ASI/tsconfig.json",
+    "boot.js",
+    "install.sh",
+    "install.ps1",
+    ".env.example",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build:bigrock": "cd BIGROCK_ASI && npm run build",
     "build:cortex": "tsc",
     "build": "npm run build:bigrock && npm run build:cortex",
     "start": "node ./dist/cli.js",
     "boot": "node boot.js",
-    "boot:beast": "node boot.js --beast"
+    "boot:beast": "node boot.js --beast",
+    "setup": "node ./dist/setup.js",
+    "postinstall": "node -e \"try{require('child_process').execSync('cd BIGROCK_ASI && npm install --no-fund --no-audit',{stdio:'ignore'})}catch(e){}\""
   },
   "repository": {
     "type": "git",

@@ -1,0 +1,19 @@
+import * as path from 'path';
+export function getWorkspaceRoot() {
+    const configured = process.env.CORTEX_WORKSPACE_ROOT?.trim();
+    return configured ? path.resolve(configured) : path.resolve(process.cwd());
+}
+export function resolveInsideWorkspace(targetPath) {
+    const root = getWorkspaceRoot();
+    const resolved = path.resolve(root, targetPath);
+    const rel = path.relative(root, resolved);
+    if (rel.startsWith('..') || path.isAbsolute(rel)) {
+        throw new Error(`Path escapes workspace root: ${targetPath}`);
+    }
+    return resolved;
+}
+export function resolveWorkingDirectory(cwd) {
+    if (!cwd)
+        return getWorkspaceRoot();
+    return resolveInsideWorkspace(cwd);
+}

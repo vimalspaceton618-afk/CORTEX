@@ -1,13 +1,39 @@
+CORTEX Software License Agreement
 Copyright (c) 2026 SpaceTon. All Rights Reserved.
 
-STRICTLY PROPRIETARY AND CONFIDENTIAL
+GRANT OF LICENSE
 
-1. Ownership: This software, specifically the "CORTEX System", and all associated source code, documentation, UI designs (including the React Ink Terminal ASCII interfaces), structural architectures, and binary executables, are the sole and exclusive property of the creator/author.
+Subject to the terms of this Agreement, SpaceTon ("Licensor") grants you
+("User") a limited, non-exclusive, non-transferable, revocable license to:
 
-2. No Copying Allowed: You are strictly prohibited from copying, distributing, modifying, sublicensing, decompiling, reverse-engineering, or creating derivative works from any part of this software.
+  1. Download, install, and use the CORTEX software for personal,
+     educational, and internal business evaluation purposes.
+  2. Run the software on systems you own or control.
 
-3. Complete Prohibition of Use: No individual, corporation, organization, entity, or third party is granted any license to use, host, deploy, or interact with this codebase without explicit, signed, written consent from the author. 
+RESTRICTIONS
 
-4. All Violations Enforced: Any reproduction or deployment of the CORTEX platform outside of the author's primary systems constitutes theft of intellectual property and is subject to immediate legal action.
+You may NOT:
+  - Redistribute, sublicense, or sell the software or any derivative works.
+  - Remove or alter any copyright notices, branding, or license files.
+  - Use the software to build a competing product or service.
+  - Reverse-engineer, decompile, or extract proprietary algorithms.
+  - Host the software as a public service (SaaS) without written consent.
 
-DO NOT COPY. DO NOT DISTRIBUTE. DO NOT USE.
+INTELLECTUAL PROPERTY
+
+All source code, documentation, UI designs (including the React Ink Terminal
+ASCII interfaces), structural architectures, agent system designs, and binary
+executables remain the sole and exclusive property of the Licensor.
+
+DISCLAIMER
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED. IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES,
+OR OTHER LIABILITY ARISING FROM THE USE OF THE SOFTWARE.
+
+TERMINATION
+
+This license is automatically revoked if you violate any of the above terms.
+Upon termination, you must destroy all copies of the software.
+
+For commercial licensing inquiries, contact: vimalspaceton618@gmail.com
