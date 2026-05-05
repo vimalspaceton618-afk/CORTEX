@@ -1,6 +1,6 @@
 {
   "name": "@cortex-local/cli",
-  "version": "4.1.0",
+  "version": "4.1.2",
   "description": "CORTEX — Unified Sovereign Intelligence Infrastructure. Private local AI for sensitive codebases.",
   "main": "dist/cli.js",
   "bin": {
