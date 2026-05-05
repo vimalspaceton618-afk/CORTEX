@@ -1,6 +1,16 @@
 import { createHash } from 'crypto';
+import * as fs from 'fs';
+import * as path from 'path';
 export class SecurityProcessor {
     audit_log = [];
+    audit_path;
+    constructor() {
+        this.audit_path = path.resolve(process.cwd(), 'data', 'security_audit.log');
+        const data_dir = path.dirname(this.audit_path);
+        if (!fs.existsSync(data_dir)) {
+            fs.mkdirSync(data_dir, { recursive: true });
+        }
+    }
     // ── Layer 1: Jailbreak & Prompt Injection Signatures ─────────────────────
     static JAILBREAK_PATTERNS = [
         /ignore\s+(all\s+)?(previous|above|prior|your)?\s*instructions/i,
@@ -92,7 +102,7 @@ export class SecurityProcessor {
             .trim();
     }
     buildLog(threat_type, severity, input, blocked) {
-        return {
+        const log = {
             threat_id: createHash('sha256').update(input + Date.now()).digest('hex').slice(0, 16),
             timestamp: Date.now(),
             threat_type,
@@ -101,6 +111,13 @@ export class SecurityProcessor {
             blocked,
             action_taken: blocked ? 'INPUT_QUARANTINED' : 'LOGGED',
         };
+        // Asynchronous non-blocking file append for real-time SIEM ingestion
+        const logLine = `[${new Date(log.timestamp).toISOString()}] [${log.severity.toUpperCase()}] Threat: ${log.threat_type} | Action: ${log.action_taken} | Hash: ${log.payload_hash}\n`;
+        fs.appendFile(this.audit_path, logLine, 'utf8', (err) => {
+            if (err)
+                console.error(`[SECURITY PROCESSOR]: Failed to write to audit log: ${err.message}`);
+        });
+        return log;
     }
     /**
      * Specialized behavioral audit for shell commands.

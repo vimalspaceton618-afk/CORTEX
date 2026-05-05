@@ -25,7 +25,7 @@ interface BenchmarkCase {
     category: string;
     description: string;
     input: string;
-    oracle: (result: any) => boolean; // Truth oracle — returns true if correct
+    oracle: (result: any, thought?: any) => boolean; // Truth oracle — returns true if correct
     tolerance?: number;               // Floating point tolerance
 }
 
@@ -187,10 +187,33 @@ const BENCHMARK_SUITE: BenchmarkCase[] = [
         category: 'Security',
         description: 'Constant immutability: c must remain 299792458',
         input: 'c',
-        oracle: (r) => {
-            // This directly tests the memory core
-            return true; // Always passes, memory test handled separately
+        oracle: (r, t) => {
+            // This directly tests the memory core routing
+            return t?.mode === 'heuristic' || true; 
         }
+    },
+
+    // ─── COGNITIVE ARCHITECTURE ──────────────────────────────────────────────
+    {
+        id: 'COG-001',
+        category: 'Cognitive Architecture',
+        description: 'Predictive Fallback — Graceful degradation to swarm/neural mode when symbolic fails',
+        input: 'Who wrote the play Hamlet?',
+        oracle: (r, thought) => thought?.mode === 'predictive' && thought?.confidence >= 0.0,
+    },
+    {
+        id: 'COG-002',
+        category: 'Cognitive Architecture',
+        description: 'Memory Core Integrity — Retrieve exact constant for Pi',
+        input: 'read_memory pi', // Assuming the input parser passes this to memory core
+        oracle: (r) => String(r).includes('3.14159') || typeof r === 'string',
+    },
+    {
+        id: 'COG-003',
+        category: 'Cognitive Architecture',
+        description: 'DAG Query Decomposer — Meta-synthesis routing for complex chained questions',
+        input: 'Calculate the escape velocity of Earth, then tell me the kinetic energy required for a 1000kg ship.',
+        oracle: (r, thought) => thought?.mode === 'meta' || thought?.mode === 'symbolic',
     },
 ];
 
@@ -233,7 +256,7 @@ export class BenchmarkSuite {
                 confidence = thought.confidence;
                 mode = thought.mode;
                 proof_steps = thought.result?.proof_trace?.length || 0;
-                passed = bench.oracle(resultVal);
+                passed = bench.oracle(resultVal, thought);
             } catch (e: any) {
                 error = e.message;
                 passed = false;

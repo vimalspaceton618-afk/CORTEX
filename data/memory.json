@@ -1,0 +1,100 @@
+{
+  "CONST::c": {
+    "key": "CONST::c",
+    "value": 299792458,
+    "type": "constant",
+    "write_time": 1777743707736,
+    "encrypted": false,
+    "access_count": 3,
+    "integrity_hash": "ce9529ab2193e71dbe2440c19c7eed625329e032f7753f3b07b4a54ca2340ade"
+  },
+  "CONST::h": {
+    "key": "CONST::h",
+    "value": 6.62607015e-34,
+    "type": "constant",
+    "write_time": 1777743707738,
+    "encrypted": false,
+    "access_count": 3,
+    "integrity_hash": "7ccd23ded6ebdb7c29c81fa2dad5c4ac8c6981e088508370f0e6ac969095975f"
+  },
+  "CONST::G": {
+    "key": "CONST::G",
+    "value": 6.6743e-11,
+    "type": "constant",
+    "write_time": 1777743707739,
+    "encrypted": false,
+    "access_count": 3,
+    "integrity_hash": "344b74bfc29df3b08b413806c914d1562b48c45f1d49f409ce9568e0448b7244"
+  },
+  "CONST::e": {
+    "key": "CONST::e",
+    "value": 1.602176634e-19,
+    "type": "constant",
+    "write_time": 1777743707739,
+    "encrypted": false,
+    "access_count": 3,
+    "integrity_hash": "e8bcd84ecaaedd1251ffcdadf74ad9716956ddb935f3a817736b7ad163181afa"
+  },
+  "CONST::Na": {
+    "key": "CONST::Na",
+    "value": 6.02214076e+23,
+    "type": "constant",
+    "write_time": 1777743707740,
+    "encrypted": false,
+    "access_count": 3,
+    "integrity_hash": "d5a73f0f411f87e801c87804475ab3bcba73bd8bed02f5862e4989b3b07d17b3"
+  },
+  "CONST::k": {
+    "key": "CONST::k",
+    "value": 1.380649e-23,
+    "type": "constant",
+    "write_time": 1777743707740,
+    "encrypted": false,
+    "access_count": 3,
+    "integrity_hash": "ea30916489a8a9f3efd0cbfeed21a701f3eb49e09ae7e0c1550783ad652a5e59"
+  },
+  "CONST::pi": {
+    "key": "CONST::pi",
+    "value": 3.141592653589793,
+    "type": "constant",
+    "write_time": 1777743707740,
+    "encrypted": false,
+    "access_count": 1,
+    "integrity_hash": "bcc9c59ebf150bd22521ad725b405bbf62ef6bd470331ec5f71f6b2d83ac29d8"
+  },
+  "CONST::phi": {
+    "key": "CONST::phi",
+    "value": 1.6180339887,
+    "type": "constant",
+    "write_time": 1777743707741,
+    "encrypted": false,
+    "access_count": 1,
+    "integrity_hash": "7c20c8eace7cc684ee37ddebf66d6c06776266e12dd6dc702847313011098b57"
+  },
+  "CONST::euler": {
+    "key": "CONST::euler",
+    "value": 2.718281828,
+    "type": "constant",
+    "write_time": 1777743707741,
+    "encrypted": false,
+    "access_count": 1,
+    "integrity_hash": "7951b3a69cc0ae318787894856dd2e8a39a5bb9ce34532b75615a7eae2dbc93c"
+  },
+  "thought::b32a9ed2-ebc0-4a1b-86f8-bc4928d9e4a9": {
+    "key": "thought::b32a9ed2-ebc0-4a1b-86f8-bc4928d9e4a9",
+    "value": {
+      "encrypted_payload": "6ce2dde21cc48ea03d4fe31479c7b13803d9825f34a974f502d3a7cd291d3650d7d914b774e58f757dc0691a9da19942fe54f8e9ac48d7804448df96f5be708bd7fe39ac4f597adf9b560f1e471f402551367c67be91ead5e6ee7a5c54484ee890389891b9df64bfb01b17c522065382f138699e0f4a73cbb961",
+      "iv": "381da95904941c90929b8441",
+      "tag": "955bdb345cd1f79105d43c0cbb01a431",
+      "domain": "mathematics",
+      "mode": "symbolic",
+      "reflection_verdict": "REJECTED"
+    },
+    "type": "episodic",
+    "write_time": 1777744726475,
+    "ttl": 120000,
+    "encrypted": false,
+    "access_count": 0,
+    "integrity_hash": "60f139abfbf82581874e37c516d9a4680ae0a6d70ad6f3be07e185659d76ec03"
+  }
+}

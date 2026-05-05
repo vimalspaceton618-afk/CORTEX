@@ -17,22 +17,31 @@ export class SLMEngine {
             this.initPromise = this.initModel();
         }
         else {
-            console.log(`[SLMEngine]: No .gguf model found at ${this.modelPath}. SLM fallback disabled.`);
+            if (process.env.DEBUG === 'true')
+                console.log(`[SLMEngine]: No .gguf model found at ${this.modelPath}. SLM fallback disabled.`);
             this.is_available = false;
         }
     }
     async initModel() {
+        const isDebug = process.env.DEBUG === 'true';
         try {
-            console.log(`[SLMEngine]: Loading native GGUF model from ${this.modelPath} (CPU only)...`);
-            this.llama = await getLlama({ gpu: false });
+            if (isDebug)
+                console.log(`[SLMEngine]: Loading native GGUF model from ${this.modelPath} (CPU only)...`);
+            // node-llama-cpp logger interception to prevent "control-looking token" warnings in the terminal
+            this.llama = await getLlama({
+                gpu: false,
+                logger: isDebug ? undefined : () => { } // Suppress native logs unless debugging
+            });
             const model = await this.llama.loadModel({ modelPath: this.modelPath });
             const context = await model.createContext();
             this.session = new LlamaChatSession({ contextSequence: context.getSequence() });
             this.is_available = true;
-            console.log(`[SLMEngine]: Native SLM (Phi-3) successfully loaded into memory.`);
+            if (isDebug)
+                console.log(`[SLMEngine]: Native SLM (Phi-3) successfully loaded into memory.`);
         }
         catch (e) {
-            console.error(`[SLMEngine Error]: Failed to load GGUF model: ${e.message}`);
+            if (isDebug)
+                console.error(`[SLMEngine Error]: Failed to load GGUF model: ${e.message}`);
             this.is_available = false;
         }
     }

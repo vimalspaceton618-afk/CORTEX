@@ -1,6 +1,6 @@
 {
-  "name": "cortex",
-  "version": "4.0.0",
+  "name": "@cortex-local/cli",
+  "version": "4.1.0",
   "description": "CORTEX — Unified Sovereign Intelligence Infrastructure. Private local AI for sensitive codebases.",
   "main": "dist/cli.js",
   "bin": {
@@ -35,7 +35,15 @@
     "type": "git",
     "url": "git+https://github.com/vimalspaceton618-afk/CORTEX.git"
   },
-  "keywords": ["ai", "local", "air-gapped", "agent", "cognition", "security", "enterprise"],
+  "keywords": [
+    "ai",
+    "local",
+    "air-gapped",
+    "agent",
+    "cognition",
+    "security",
+    "enterprise"
+  ],
   "author": "SpaceTon",
   "license": "UNLICENSED",
   "type": "module",
@@ -47,7 +55,7 @@
     "chalk": "^5.6.2",
     "commander": "^14.0.3",
     "dockerode": "^4.0.10",
-    "dotenv": "^17.4.1",
+    "dotenv": "^16.4.5",
     "ink": "^7.0.0",
     "openai": "^6.34.0",
     "puppeteer": "^24.40.0",

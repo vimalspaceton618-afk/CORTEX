@@ -185,7 +185,11 @@ export class LLMDevourer {
                 }
                 catch (e) {
                     const is_timeout = e.message === 'PROBE_TIMEOUT';
-                    console.log(`  ${progress} ${is_timeout ? '⏱' : '⚠'} [${domain}] ${probe.id}: ${is_timeout ? 'TIMEOUT (90s)' : `ERROR (${e.message})`}`);
+                    if (!is_timeout) {
+                        console.error(`  ${progress} ⚠ [${domain}] ${probe.id}: FATAL ERROR (${e.message}). Aborting absorption to ensure strict determinism.`);
+                        throw e; // Do not silently swallow fatal engine errors
+                    }
+                    console.log(`  ${progress} ⏱ [${domain}] ${probe.id}: TIMEOUT (90s) - Scoring as 0`);
                     all_results.push({
                         probe_id: probe.id,
                         domain: probe.domain,
@@ -193,7 +197,7 @@ export class LLMDevourer {
                         response_length: 0,
                         markers_hit: [],
                         markers_missed: probe.expected_markers.map(m => typeof m === 'string' ? m : m.source),
-                        latency_ms: is_timeout ? PROBE_TIMEOUT_MS : 0,
+                        latency_ms: PROBE_TIMEOUT_MS,
                     });
                 }
             }

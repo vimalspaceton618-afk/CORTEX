@@ -189,15 +189,15 @@ export class NeuroBridge {
     public async route(input: string): Promise<BridgeDecision> {
         const { domain, confidence } = await this.classifyDomain(input);
 
-        if (domain === 'mathematics' || domain === 'physics' || domain === 'chemistry') {
+        if (domain === 'mathematics' || domain === 'physics' || domain === 'chemistry' || domain === 'logic') {
             return {
                 route: 'symbolic_engine',
                 confidence,
                 reasoning: `Domain "${domain}" requires deterministic proof. Routing to SymbolicEngine.`,
                 fallback: {
-                    route: 'language_model',
+                    route: 'predictive',
                     confidence: 0.5,
-                    reasoning: 'Fallback to LLM if symbolic engine cannot parse the expression.'
+                    reasoning: 'Fallback to predictive swarm if symbolic engine cannot parse the expression.'
                 }
             };
         }
@@ -217,9 +217,9 @@ export class NeuroBridge {
         }
 
         return {
-            route: 'language_model',
+            route: 'predictive',
             confidence,
-            reasoning: `Domain "${domain}" is language-based. Routing to LLM interface.`
+            reasoning: `Domain "${domain}" is unstructured/cognitive. Routing to predictive swarm intelligence.`
         };
     }
 

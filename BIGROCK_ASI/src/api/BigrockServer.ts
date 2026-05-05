@@ -98,6 +98,7 @@ export class BigrockServer {
             console.log(`  Math Engine:    POST /v1/math/evaluate`);
             console.log(`  Physics Engine: POST /v1/physics/simulate`);
             console.log(`  Logic Prover:   POST /v1/logic/prove`);
+            console.log(`  Model Absorb:   POST /v1/models/absorb`);
             console.log(`  System:         GET  /v1/system/status`);
         });
     }
@@ -138,6 +139,37 @@ export class BigrockServer {
             if (!body.expression) return send(res, 400, { error: 'expression required' });
             const result = this.core.getLogic().prove(body.expression);
             return send(res, 200, { engine: 'Bigrock FormalLogicProver', ...result });
+        }
+
+        // ── POST /v1/models/absorb ─────────────────────────────────────────
+        if (method === 'POST' && url === '/v1/models/absorb') {
+            const force = !!body.force;
+            try {
+                const report = await this.core.getAbsorber().absorbAll(force);
+                return send(res, 200, { engine: 'Bigrock LLMDevourer', status: 'success', report });
+            } catch (e: any) {
+                return send(res, 500, { error: e.message });
+            }
+        }
+
+        // ── GET /v1/models/hive ────────────────────────────────────────────
+        if (method === 'GET' && url === '/v1/models/hive') {
+            const hive = this.core.getBrain().getHive();
+            return send(res, 200, {
+                engine: 'Bigrock ModelHive',
+                total_models: hive.size(),
+                total_power: hive.getTotalPower(),
+                champions: Object.fromEntries(hive.getAllChampions()),
+            });
+        }
+
+        // ── GET /v1/models/fusion ──────────────────────────────────────────
+        if (method === 'GET' && url === '/v1/models/fusion') {
+            const fusion = this.core.getBrain().getFusion();
+            return send(res, 200, {
+                engine: 'Bigrock NeuralFusionCore',
+                status: fusion.getStatus()
+            });
         }
 
         // ── GET /v1/system/telemetry ───────────────────────────────────────

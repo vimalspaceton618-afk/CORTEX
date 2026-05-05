@@ -249,9 +249,8 @@ export class GGUFExtractor {
             case GGMLType.Q6_K:
                 return this.dequantizeQ6_K(fd, file_offset, n_elements);
             default:
-                // Fallback: read raw bytes and interpret as best we can
-                console.log(`[GGUFExtractor]: ⚠ Unsupported quant type ${GGML_TYPE_NAMES[type] || type}, using statistical sampling`);
-                return this.readRawSampled(fd, file_offset, n_elements, type);
+                // Strict Determinism Enforcement: No fictional math.random fallbacks.
+                throw new Error(`[GGUFExtractor]: Unsupported quantization type ${GGML_TYPE_NAMES[type] || type}. Strict execution aborted to prevent fictional extraction.`);
         }
     }
     /** Read raw float32 tensor */
@@ -458,25 +457,6 @@ export class GGUFExtractor {
                 if (out_idx < actual_elements) {
                     result[out_idx++] = d * sc * (q6_hi - 32);
                 }
-            }
-        }
-        return result;
-    }
-    /** Fallback: read raw bytes and create statistical approximation */
-    readRawSampled(fd, offset, n_elements, type) {
-        const block_size = BLOCK_SIZE[type] || 32;
-        const bytes_per_block = BYTES_PER_BLOCK[type] || 18;
-        const n_blocks = Math.ceil(n_elements / block_size);
-        const sample_blocks = Math.min(n_blocks, 1024); // sample up to 1024 blocks
-        const raw = Buffer.alloc(sample_blocks * bytes_per_block);
-        fs.readSync(fd, raw, 0, sample_blocks * bytes_per_block, offset);
-        // Extract scale values from each block's first 2 bytes (fp16 scale)
-        const sample_count = Math.min(n_elements, sample_blocks * block_size);
-        const result = new Float32Array(sample_count);
-        for (let b = 0; b < sample_blocks; b++) {
-            const scale = this.fp16ToFp32(raw.readUInt16LE(b * bytes_per_block));
-            for (let j = 0; j < block_size && (b * block_size + j) < sample_count; j++) {
-                result[b * block_size + j] = scale * (Math.random() * 2 - 1); // approximate with scale
             }
         }
         return result;

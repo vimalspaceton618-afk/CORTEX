@@ -95,7 +95,7 @@ export interface MemoryCell {
 // ─── Neuro-Bridge Types ────────────────────────────────────────────────────────
 
 export interface BridgeDecision {
-    route: 'symbolic_engine' | 'language_model' | 'system_kernel' | 'memory_core';
+    route: 'symbolic_engine' | 'predictive' | 'system_kernel' | 'memory_core';
     confidence: number;
     reasoning: string;
     fallback?: BridgeDecision;

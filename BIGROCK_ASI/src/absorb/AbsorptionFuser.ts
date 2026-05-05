@@ -90,10 +90,10 @@ export class AbsorptionFuser {
     }
 
     /**
-     * Strategy 2: Weighted Blend
-     * Take top-2 models. Champion gets 70% weight, runner-up 30%.
-     * Merges responses by selecting the longer, more substantive one
-     * but enriches it with unique facts from the secondary.
+     * Strategy 2: Strict Quality Rerank (formerly Weighted Blend)
+     * Takes top-2 models. Evaluates strict quality metrics rather than blindly 
+     * concatenating sentences, which leads to fictional hallucinations.
+     * Selects the mathematically superior output without altering the text.
      */
     private weightedBlend(sorted: ModelResponse[]): FusedResult {
         const champion = sorted[0];
@@ -102,38 +102,29 @@ export class AbsorptionFuser {
         const q1 = this.scoreQuality(champion.response);
         const q2 = this.scoreQuality(runnerUp.response);
 
-        // If champion is clearly better, just use it
-        if (q1 > q2 * 1.5 || sorted.length < 2) {
+        // Strict deterministic reranking: Does the runner-up mathematically outperform
+        // the champion in pure response quality enough to override the domain score delta?
+        const champScore = champion.domain_score * q1;
+        const runnerScore = runnerUp.domain_score * q2;
+
+        if (champScore >= runnerScore) {
             const result = this.championSelect(sorted);
             result.strategy_used = 'weighted_blend';
-            result.fusion_trace.push('[Blend]: Champion dominant — skipped fusion');
+            result.fusion_trace.push('[Strict Rerank]: Champion maintained dominance based on composite score.');
             return result;
         }
 
-        // Extract unique sentences from runner-up not in champion
-        const champion_sentences = new Set(this.extractSentences(champion.response));
-        const unique_additions = this.extractSentences(runnerUp.response)
-            .filter(s => !champion_sentences.has(s) && s.length > 20)
-            .slice(0, 3); // max 3 enrichment sentences
-
-        const blended = unique_additions.length > 0
-            ? champion.response.trimEnd() + '\n\n' + unique_additions.join(' ')
-            : champion.response;
-
-        const compositeScore = (champion.domain_score * 0.7 + runnerUp.domain_score * 0.3)
-            * this.scoreQuality(blended);
-
+        // Runner up won the strict rerank
         return {
             strategy_used: 'weighted_blend',
-            winning_model: champion.model_name,
-            fused_response: blended,
-            composite_confidence: Math.min(1.0, compositeScore),
+            winning_model: runnerUp.model_name,
+            fused_response: runnerUp.response, // STRICT: No string concatenation
+            composite_confidence: Math.min(1.0, runnerScore),
             models_consulted: 2,
             fusion_trace: [
-                `[Champion]: ${champion.model_name} (score: ${champion.domain_score.toFixed(3)}, quality: ${q1.toFixed(3)})`,
-                `[Runner-up]: ${runnerUp.model_name} (score: ${runnerUp.domain_score.toFixed(3)}, quality: ${q2.toFixed(3)})`,
-                `[Enrichment]: ${unique_additions.length} unique sentences added from runner-up`,
-                `[Composite confidence]: ${compositeScore.toFixed(3)}`,
+                `[Champion]: ${champion.model_name} (domain: ${champion.domain_score.toFixed(3)}, quality: ${q1.toFixed(3)})`,
+                `[Runner-up]: ${runnerUp.model_name} (domain: ${runnerUp.domain_score.toFixed(3)}, quality: ${q2.toFixed(3)})`,
+                `[Strict Rerank]: Runner-up output selected due to superior composite score (${runnerScore.toFixed(3)} > ${champScore.toFixed(3)})`,
             ],
         };
     }

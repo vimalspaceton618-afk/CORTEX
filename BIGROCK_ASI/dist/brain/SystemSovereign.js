@@ -49,11 +49,19 @@ export class SystemSovereign {
                 }
             }
         }
-        // 2. HEALTH GUARDIAN: Check brain status
+        // 2. HEALTH GUARDIAN: Preemptive Champion Loading
         const brain_status = this.brain.getStatus();
         if (brain_status.hive_status.hot_models === 0 && health.ram_free_gb > 4.0) {
-            // Brain is fully cold but we have plenty of RAM. 
-            // In a real sovereign system, we might preemptively load the primary champion here.
+            console.log(`[SystemSovereign]: 🛡️ Substantial RAM available. Preemptively loading primary champion...`);
+            const hive = this.brain.getHive();
+            const ranked_models = hive.getAllRanked();
+            if (ranked_models.length > 0) {
+                const champion = ranked_models[0].filename;
+                // Preemptively load it by invoking a dummy ping, allowing AdaptiveBrain to handle the underlying node-llama-cpp state.
+                this.brain.think('ping', 'system', 'single_champion').catch(e => {
+                    console.error(`[SystemSovereign]: Preemptive load failed: ${e.message}`);
+                });
+            }
         }
     }
     /**

@@ -1,12 +1,30 @@
 [package]
 name = "bigrock-kernel"
-version = "0.1.0"
+version = "4.0.0"
 edition = "2021"
-authors = ["CORTEX Architect"]
-description = "Ring-0 No_STD Kernel abstraction for Bigrock ASI"
+authors = ["SpaceTon <CORTEX Architect>"]
+description = "Ring-0 Bare-Metal Abstraction Layer for BIGROCK ASI"
+license = "UNLICENSED"
 
 [lib]
+# Compile as a dynamic library for WebAssembly/FFI embedding
 crate-type = ["cdylib", "rlib"]
 
+[features]
+default = []
+# Hardware-level acceleration flags for future native targets
+aes_ni = []
+avx512 = []
+secure_enclave = []
+
 [dependencies]
-# We will use purely #![no_std] crates for the hypervisor memory wall
+# 100% #![no_std] isolated crates for memory and cryptography
+# Note: External dependencies are currently omitted for strict air-gapped sovereignty.
+
+[profile.release]
+opt-level = "z"        # Optimize for extreme minimum binary size
+lto = true             # Enable Link-Time Optimization for cross-crate flattening
+panic = "abort"        # Strip panic unwinding to maintain secure memory boundaries
+codegen-units = 1      # Maximize optimization at the cost of compile time
+strip = true           # Strip debug symbols automatically
+

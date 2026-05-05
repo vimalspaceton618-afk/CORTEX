@@ -1,5 +1,7 @@
 import { createHash } from 'crypto';
 import type { SecurityAuditLog, ThreatType } from './types.js';
+import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * BIGROCK_v1 — Zero-Trust Security Processor
@@ -27,6 +29,15 @@ export interface ThreatScan {
 
 export class SecurityProcessor {
     private audit_log: SecurityAuditLog[] = [];
+    private readonly audit_path: string;
+
+    constructor() {
+        this.audit_path = path.resolve(process.cwd(), 'data', 'security_audit.log');
+        const data_dir = path.dirname(this.audit_path);
+        if (!fs.existsSync(data_dir)) {
+            fs.mkdirSync(data_dir, { recursive: true });
+        }
+    }
 
     // ── Layer 1: Jailbreak & Prompt Injection Signatures ─────────────────────
     private static readonly JAILBREAK_PATTERNS: RegExp[] = [
@@ -134,7 +145,7 @@ export class SecurityProcessor {
         input: string,
         blocked: boolean
     ): SecurityAuditLog {
-        return {
+        const log: SecurityAuditLog = {
             threat_id: createHash('sha256').update(input + Date.now()).digest('hex').slice(0, 16),
             timestamp: Date.now(),
             threat_type,
@@ -143,6 +154,14 @@ export class SecurityProcessor {
             blocked,
             action_taken: blocked ? 'INPUT_QUARANTINED' : 'LOGGED',
         };
+        
+        // Asynchronous non-blocking file append for real-time SIEM ingestion
+        const logLine = `[${new Date(log.timestamp).toISOString()}] [${log.severity.toUpperCase()}] Threat: ${log.threat_type} | Action: ${log.action_taken} | Hash: ${log.payload_hash}\n`;
+        fs.appendFile(this.audit_path, logLine, 'utf8', (err) => {
+            if (err) console.error(`[SECURITY PROCESSOR]: Failed to write to audit log: ${err.message}`);
+        });
+
+        return log;
     }
 
     /**

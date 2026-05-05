@@ -157,14 +157,14 @@ Return ONLY the single word domain name or "unknown".`;
         try {
             if (routing.route === 'symbolic_engine') {
                 mode = 'symbolic';
-                const capability = domain === 'physics' ? 'execute_physics' : 'execute_math';
+                const capability = (domain === 'physics' || domain === 'logic') ? 'execute_physics' : 'execute_math';
                 // Race the sandboxed execution against a timeout
                 const sandboxed = await Promise.race([
                     this.hypervisor.sandbox('CognitionCore', capability, async () => {
                         const { formula, variable } = parsed_intent.parameters;
                         const operation = parsed_intent.operation;
-                        if (domain === 'physics') {
-                            return this.dispatchPhysics(clean_input, formula);
+                        if (domain === 'logic') {
+                            return this.logic.prove(clean_input);
                         }
                         if (operation === 'differentiate' && variable) {
                             return this.symbolic.differentiate(formula, variable);
@@ -173,29 +173,53 @@ Return ONLY the single word domain name or "unknown".`;
                             return this.symbolic.solve(formula, variable);
                         }
                         else {
+                            // Physics formulas are evaluated exactly the same as math,
+                            // using actual dynamic parameters extracted by the NeuroBridge.
                             return this.symbolic.evaluate(formula);
                         }
                     }),
                     new Promise((_, reject) => setTimeout(() => reject(new Error('COGNITION_TIMEOUT')), COGNITION_TIMEOUT_MS))
                 ]);
                 if (sandboxed.success && sandboxed.result) {
-                    const sym_result = sandboxed.result;
-                    if ('law' in sym_result) {
+                    const r = sandboxed.result;
+                    // Branch based on result type (Logic Result vs Physics Result vs Math Result)
+                    if ('is_tautology' in r) {
+                        // Logic result
                         result = {
                             type: 'proof',
-                            value: `${sym_result.result} ${sym_result.unit}`,
-                            proof_trace: sym_result.proof_trace,
+                            value: r.is_tautology ? 'TAUTOLOGY (always true)' :
+                                r.is_contradiction ? 'CONTRADICTION (always false)' :
+                                    `CONTINGENT (true in ${r.satisfiable_count}/${r.total_rows} cases)`,
+                            proof_trace: [
+                                `[Variables]: ${r.variables.join(', ')}`,
+                                `[Total Rows]: ${r.total_rows}`,
+                                `[Satisfiable]: ${r.satisfiable_count}`,
+                                `[Tautology]: ${r.is_tautology}`,
+                                `[Contradiction]: ${r.is_contradiction}`,
+                                ...r.truth_table.slice(0, 8).map((row) => `  ${Object.entries(row.variables).map(([k, v]) => `${k}=${v ? 'T' : 'F'}`).join(', ')} → ${row.result ? 'TRUE' : 'FALSE'}`),
+                                r.truth_table.length > 8 ? `  ... (${r.truth_table.length - 8} more rows)` : ''
+                            ].filter(Boolean),
+                            confidence: 1.0
+                        };
+                    }
+                    else if ('law' in r) {
+                        // Physics result
+                        result = {
+                            type: 'proof',
+                            value: `${r.result} ${r.unit}`,
+                            proof_trace: r.proof_trace,
                             confidence: 1.0
                         };
                     }
                     else {
+                        // Standard math result
                         result = {
-                            type: sym_result.success ? 'proof' : 'error',
-                            value: sym_result.success ? sym_result.result : sym_result.error,
-                            proof_trace: sym_result.proof_trace,
-                            confidence: sym_result.success ? 1.0 : 0.0
+                            type: r.success ? 'proof' : 'error',
+                            value: r.success ? r.result : r.error,
+                            proof_trace: r.proof_trace,
+                            confidence: r.success ? 1.0 : 0.0
                         };
-                        if (!sym_result.success)
+                        if (!r.success)
                             fallbackTriggered = true;
                     }
                 }
@@ -224,38 +248,6 @@ Return ONLY the single word domain name or "unknown".`;
                     value: mem_val ?? `No memory cell found for key: "${key}"`,
                     confidence: mem_val !== undefined ? 1.0 : 0.0
                 };
-            }
-            else if (domain === 'logic') {
-                mode = 'symbolic';
-                const sandboxed = await Promise.race([
-                    this.hypervisor.sandbox('CognitionCore', 'execute_math', () => {
-                        return this.logic.prove(clean_input);
-                    }),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('COGNITION_TIMEOUT')), COGNITION_TIMEOUT_MS))
-                ]);
-                if (sandboxed.success && sandboxed.result) {
-                    const lr = sandboxed.result;
-                    result = {
-                        type: 'proof',
-                        value: lr.is_tautology ? 'TAUTOLOGY (always true)' :
-                            lr.is_contradiction ? 'CONTRADICTION (always false)' :
-                                `CONTINGENT (true in ${lr.satisfiable_count}/${lr.total_rows} cases)`,
-                        proof_trace: [
-                            `[Variables]: ${lr.variables.join(', ')}`,
-                            `[Total Rows]: ${lr.total_rows}`,
-                            `[Satisfiable]: ${lr.satisfiable_count}`,
-                            `[Tautology]: ${lr.is_tautology}`,
-                            `[Contradiction]: ${lr.is_contradiction}`,
-                            ...lr.truth_table.slice(0, 8).map((row) => `  ${Object.entries(row.variables).map(([k, v]) => `${k}=${v ? 'T' : 'F'}`).join(', ')} → ${row.result ? 'TRUE' : 'FALSE'}`),
-                            lr.truth_table.length > 8 ? `  ... (${lr.truth_table.length - 8} more rows)` : ''
-                        ].filter(Boolean),
-                        confidence: 1.0
-                    };
-                }
-                else {
-                    result = { type: 'error', value: sandboxed.error || 'Logic proof failed', confidence: 0.0 };
-                    fallbackTriggered = true;
-                }
             }
             else {
                 throw new Error('ROUTE_TO_PREDICTIVE');
@@ -307,51 +299,6 @@ Return ONLY the single word domain name or "unknown".`;
         this.episodic.store(thought, 'episodic');
         this.thought_log.push(thought);
         return thought;
-    }
-    /**
-     * Physics dispatch — matches natural language to specific physics simulations.
-     */
-    dispatchPhysics(input, formula) {
-        const lower = input.toLowerCase();
-        // Gravitational force
-        if (lower.includes('gravitational force') || lower.includes('gravity force') || /G\s*\*/.test(formula)) {
-            return this.physics.gravitationalForce(5.972e24, 70, 6371000);
-        }
-        // Time dilation
-        if (lower.includes('time dilation')) {
-            const v = 0.9 * 299792458; // 90% speed of light
-            return this.physics.timeDilation(1.0, v);
-        }
-        // E=mc²
-        if (lower.includes('e=mc') || lower.includes('mass energy') || lower.includes('mass-energy')) {
-            return this.physics.massEnergy(1.0);
-        }
-        // Escape velocity
-        if (lower.includes('escape velocity')) {
-            return this.physics.escapeVelocity(5.972e24, 6371000);
-        }
-        // Orbital velocity
-        if (lower.includes('orbital velocity')) {
-            return this.physics.orbitalVelocity(5.972e24, 6371000 + 400000); // ISS orbit
-        }
-        // Photon energy
-        if (lower.includes('photon') && lower.includes('energy')) {
-            return this.physics.photonEnergy(5e14);
-        }
-        // Coulomb force
-        if (lower.includes('coulomb') || lower.includes('electrostatic')) {
-            return this.physics.coulombForce(1.6e-19, -1.6e-19, 5.29e-11); // Hydrogen atom
-        }
-        // de Broglie
-        if (lower.includes('de broglie') || lower.includes('wavelength')) {
-            return this.physics.deBroglieWavelength(9.109e-31, 2.2e6); // Electron in hydrogen
-        }
-        // Hydrogen transition
-        if (lower.includes('hydrogen') && (lower.includes('transition') || lower.includes('spectrum'))) {
-            return this.physics.hydrogenTransition(2, 1); // Lyman-alpha
-        }
-        // Default: treat as a raw expression
-        return this.symbolic.evaluate(formula);
     }
     // ──── Public accessors ──────────────────────────────────────────────────
     getThoughtLog() { return this.thought_log; }

@@ -6,25 +6,52 @@ import { Tool } from '../tools/Tool.js';
 import { resolveInsideWorkspace } from '../tools/PathSecurity.js';
 import * as fs from 'fs';
 import * as path from 'path';
+/**
+ * Advanced Browser Discovery Engine
+ * Supports: Chrome, Brave, Firefox, Edge, and Tor.
+ */
 function getBrowserCandidates() {
-    if (process.platform !== 'win32')
-        return [];
-    const candidates = [
-        process.env.PUPPETEER_EXECUTABLE_PATH || '',
-        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-        'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-        'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
-        'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
-    ].filter(Boolean);
-    return candidates.filter((p) => fs.existsSync(path.normalize(p)));
+    const candidates = {
+        chrome: [
+            process.env.PUPPETEER_EXECUTABLE_PATH || '',
+            'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+            'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+            path.join(process.env.LOCALAPPDATA || '', 'Google\\Chrome\\Application\\chrome.exe')
+        ],
+        brave: [
+            'C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe',
+            path.join(process.env.LOCALAPPDATA || '', 'BraveSoftware\\Brave-Browser\\Application\\brave.exe')
+        ],
+        edge: [
+            'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+            'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+        ],
+        firefox: [
+            'C:\\Program Files\\Mozilla Firefox\\firefox.exe',
+            path.join(process.env.LOCALAPPDATA || '', 'Mozilla Firefox\\firefox.exe')
+        ],
+        tor: [
+            path.join(process.env.DESKTOP || path.join(process.env.USERPROFILE || '', 'Desktop'), 'Tor Browser\\Browser\\firefox.exe'),
+            path.join(process.env.LOCALAPPDATA || '', 'Tor Browser\\Browser\\firefox.exe')
+        ]
+    };
+    const found = {};
+    for (const [key, paths] of Object.entries(candidates)) {
+        found[key] = paths.filter(p => p && fs.existsSync(path.normalize(p)));
+    }
+    return found;
 }
+// ─── TOOLS ──────────────────────────────────────────────────────────────────
 class BrowserNavigateTool extends Tool {
     owner;
     name = 'browser_navigate';
-    description = 'Navigate browser to URL and return page title.';
+    description = 'Navigate to a URL. Support for stealth mode and custom User-Agents.';
     schema = {
         type: 'object',
-        properties: { url: { type: 'string', description: 'Target URL to navigate to.' } },
+        properties: {
+            url: { type: 'string', description: 'Target URL.' },
+            userAgent: { type: 'string', description: 'Optional custom User-Agent.' }
+        },
         required: ['url'],
         additionalProperties: false
     };
@@ -33,27 +60,91 @@ class BrowserNavigateTool extends Tool {
         this.owner = owner;
     }
     async execute(args) {
-        try {
-            const page = await this.owner.ensurePage();
-            await page.goto(args.url, { waitUntil: 'domcontentloaded' });
-            const title = await page.title();
-            return `Navigated to ${args.url}\nTitle: ${title}`;
+        const page = await this.owner.ensurePage();
+        if (args.userAgent)
+            await page.setUserAgent(args.userAgent);
+        await page.goto(args.url, { waitUntil: 'networkidle2', timeout: 60000 });
+        return `Navigated to ${args.url}\nTitle: ${await page.title()}`;
+    }
+}
+class BrowserActionTool extends Tool {
+    owner;
+    name = 'browser_action';
+    description = 'Perform interactive actions: click, type, scroll, or press key.';
+    schema = {
+        type: 'object',
+        properties: {
+            action: { type: 'string', enum: ['click', 'type', 'press', 'scroll'] },
+            selector: { type: 'string', description: 'CSS selector for the element.' },
+            text: { type: 'string', description: 'Text to type or key to press.' },
+            x: { type: 'number', description: 'Scroll X offset.' },
+            y: { type: 'number', description: 'Scroll Y offset.' }
+        },
+        required: ['action'],
+        additionalProperties: false
+    };
+    constructor(owner) {
+        super();
+        this.owner = owner;
+    }
+    async execute(args) {
+        const page = await this.owner.ensurePage();
+        switch (args.action) {
+            case 'click':
+                if (!args.selector)
+                    throw new Error('Selector required for click');
+                await page.click(args.selector);
+                return `Clicked ${args.selector}`;
+            case 'type':
+                if (!args.selector || !args.text)
+                    throw new Error('Selector and text required for type');
+                await page.type(args.selector, args.text, { delay: 50 });
+                return `Typed text into ${args.selector}`;
+            case 'press':
+                if (!args.text)
+                    throw new Error('Key text required for press');
+                await page.keyboard.press(args.text);
+                return `Pressed key: ${args.text}`;
+            case 'scroll':
+                await page.evaluate((x, y) => window.scrollBy(x || 0, y || 0), args.x, args.y);
+                return `Scrolled by ${args.x || 0}, ${args.y || 0}`;
+            default:
+                throw new Error(`Unknown action: ${args.action}`);
         }
-        finally {
-            await this.owner.closeBrowser();
-        }
+    }
+}
+class BrowserProxyTool extends Tool {
+    owner;
+    name = 'browser_set_config';
+    description = 'Set browser proxy (e.g. for Tor) or browser type (chrome, firefox, tor).';
+    schema = {
+        type: 'object',
+        properties: {
+            proxy: { type: 'string', description: 'Proxy server (e.g. socks5://127.0.0.1:9050)' },
+            browserType: { type: 'string', enum: ['chrome', 'brave', 'firefox', 'edge', 'tor'] }
+        },
+        additionalProperties: false
+    };
+    constructor(owner) {
+        super();
+        this.owner = owner;
+    }
+    async execute(args) {
+        if (args.proxy)
+            this.owner.setProxy(args.proxy);
+        if (args.browserType)
+            this.owner.setBrowserType(args.browserType);
+        await this.owner.closeBrowser(); // Restart needed to apply launch args
+        return `Browser config updated. Next navigation will use ${args.browserType || 'default'} browser ${args.proxy ? 'via ' + args.proxy : ''}.`;
     }
 }
 class BrowserScreenshotTool extends Tool {
     owner;
     name = 'browser_screenshot';
-    description = 'Capture screenshot of current page or URL.';
+    description = 'Capture high-resolution screenshot.';
     schema = {
         type: 'object',
-        properties: {
-            filePath: { type: 'string', description: 'Path to save screenshot, relative to workspace root.' },
-            url: { type: 'string', description: 'Optional URL to visit before screenshot.' }
-        },
+        properties: { filePath: { type: 'string' } },
         required: ['filePath'],
         additionalProperties: false
     };
@@ -62,30 +153,19 @@ class BrowserScreenshotTool extends Tool {
         this.owner = owner;
     }
     async execute(args) {
-        try {
-            const page = await this.owner.ensurePage();
-            if (args.url) {
-                await page.goto(args.url, { waitUntil: 'networkidle2' });
-            }
-            const target = resolveInsideWorkspace(args.filePath);
-            await page.screenshot({ path: target, fullPage: true });
-            return `Screenshot saved to ${target}`;
-        }
-        finally {
-            await this.owner.closeBrowser();
-        }
+        const page = await this.owner.ensurePage();
+        const target = resolveInsideWorkspace(args.filePath);
+        await page.screenshot({ path: target, fullPage: true });
+        return `Screenshot saved to ${target}`;
     }
 }
 class BrowserGetContentTool extends Tool {
     owner;
     name = 'browser_get_content';
-    description = 'Extract page text content from current page or URL.';
+    description = 'Extract text or HTML content.';
     schema = {
         type: 'object',
-        properties: {
-            url: { type: 'string', description: 'Optional URL to visit before extraction.' },
-            maxChars: { type: 'number', description: 'Maximum chars to return.' }
-        },
+        properties: { format: { type: 'string', enum: ['text', 'html'] } },
         additionalProperties: false
     };
     constructor(owner) {
@@ -93,25 +173,20 @@ class BrowserGetContentTool extends Tool {
         this.owner = owner;
     }
     async execute(args) {
-        try {
-            const page = await this.owner.ensurePage();
-            if (args.url) {
-                await page.goto(args.url, { waitUntil: 'domcontentloaded' });
-            }
-            const text = await page.evaluate(() => document.body?.innerText || '');
-            const maxChars = Math.max(500, Math.min(Number(args.maxChars || 6000), 50000));
-            return text.length > maxChars ? `${text.slice(0, maxChars)}\n...[truncated]` : text;
-        }
-        finally {
-            await this.owner.closeBrowser();
-        }
+        const page = await this.owner.ensurePage();
+        if (args.format === 'html')
+            return await page.content();
+        return await page.evaluate(() => document.body?.innerText || '');
     }
 }
+// ─── AGENT ──────────────────────────────────────────────────────────────────
 export class BrowserAgent extends BaseAgent {
     browser = null;
     page = null;
+    proxy = null;
+    browserType = 'chrome';
     constructor() {
-        super("BrowserAgent", "You are the Browser Agent. You can visually inspect web apps and take screenshots to verify UI. CRITICAL INSTRUCTION: If you write or generate any code (like HTML/CSS), you MUST use the `write_file` tool to save the code to the file system. DO NOT output massive raw code strings to the chat interface unless specifically asked.");
+        super("BrowserAgent", "Ultimate Unrestricted Browsing Agent. Capable of cross-browser execution (Chrome, Firefox, Tor, Brave) and interactive web automation. Use `browser_set_config` to switch to Tor or Firefox for privacy-sensitive research.");
     }
     setupTools() {
         this.registry.register(new ReadFileTool());
@@ -119,43 +194,53 @@ export class BrowserAgent extends BaseAgent {
         this.registry.register(new ListDirTool());
         this.registry.register(new AnalyzeImageTool());
         this.registry.register(new BrowserNavigateTool(this));
+        this.registry.register(new BrowserActionTool(this));
+        this.registry.register(new BrowserProxyTool(this));
         this.registry.register(new BrowserScreenshotTool(this));
         this.registry.register(new BrowserGetContentTool(this));
     }
+    setProxy(proxy) { this.proxy = proxy; }
+    setBrowserType(type) { this.browserType = type; }
     async ensurePage() {
         if (!this.browser) {
-            try {
-                const candidates = getBrowserCandidates();
-                if (candidates.length > 0) {
-                    this.browser = await puppeteer.launch({
-                        headless: true,
-                        executablePath: candidates[0],
-                        args: ['--no-first-run', '--no-default-browser-check']
-                    });
+            const candidates = getBrowserCandidates();
+            const typeList = this.browserType === 'tor' ? ['tor', 'firefox'] : [this.browserType, 'chrome', 'edge'];
+            let executablePath;
+            for (const type of typeList) {
+                if (candidates[type] && candidates[type].length > 0) {
+                    executablePath = candidates[type][0];
+                    break;
                 }
-                else {
-                    this.browser = await puppeteer.launch({ headless: true });
-                }
-                // Prevent browser child process from holding headless CLI open.
-                this.browser.process()?.unref();
             }
-            catch (error) {
-                const candidates = getBrowserCandidates();
-                const candidateNote = candidates.length
-                    ? `Detected browser executable candidates:\n- ${candidates.join('\n- ')}`
-                    : 'No browser executable candidates detected. Set PUPPETEER_EXECUTABLE_PATH in ~/.cortexcli/config.json.';
-                throw new Error(`Browser launch failed: ${error.message}\n${candidateNote}`);
-            }
+            const launchArgs = [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-infobars',
+                '--window-position=0,0',
+                '--ignore-certifcate-errors',
+                '--ignore-certifcate-errors-spki-list',
+                '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            ];
+            if (this.proxy)
+                launchArgs.push(`--proxy-server=${this.proxy}`);
+            const options = {
+                headless: true,
+                executablePath,
+                args: launchArgs,
+                ignoreHTTPSErrors: true
+            };
+            this.browser = await puppeteer.launch(options);
+            this.browser.process()?.unref();
         }
         if (!this.page) {
             this.page = await this.browser.newPage();
+            await this.page.setViewport({ width: 1920, height: 1080 });
+            // Stealth headers
+            await this.page.setExtraHTTPHeaders({
+                'Accept-Language': 'en-US,en;q=0.9',
+            });
         }
         return this.page;
-    }
-    async takeScreenshot(url, path) {
-        const page = await this.ensurePage();
-        await page.goto(url);
-        await page.screenshot({ path });
     }
     async closeBrowser() {
         if (this.browser)

@@ -820,23 +820,84 @@ class MeshEnvelopeCompleteTool extends Tool {
 }
 class AutomationLoopPlannerTool extends Tool {
     name = 'plugin_automation_loop_plan';
-    description = 'Generate an autonomous loop plan for multi-step task execution.';
+    description = 'Generate and persist an autonomous loop plan for multi-step task execution. Creates .cortex_loop.json.';
     schema = {
         type: 'object',
         properties: {
             objective: { type: 'string', description: 'Primary objective for the loop.' },
-            maxIterations: { type: 'number', description: 'Optional upper bound for loop iterations.' }
+            maxIterations: { type: 'number', description: 'Maximum allowed iterations (default: 6).' },
+            validationCriteria: { type: 'string', description: 'Specific metrics or conditions to verify success.' }
         },
         required: ['objective'],
         additionalProperties: false
     };
     async execute(args) {
-        const maxIterations = Math.max(1, Math.min(Number(args.maxIterations || 6), 20));
+        const maxIterations = Math.max(1, Math.min(Number(args.maxIterations || 6), 30));
+        const loopState = {
+            id: `loop_${Date.now()}`,
+            objective: args.objective,
+            validationCriteria: args.validationCriteria || 'Manual verification or test suite pass.',
+            currentIteration: 0,
+            maxIterations,
+            history: [],
+            status: 'active',
+            startTime: new Date().toISOString()
+        };
+        const loopFile = path.resolve(process.cwd(), '.cortex_loop.json');
+        fs.writeFileSync(loopFile, JSON.stringify(loopState, null, 2));
         return [
-            `Automation loop objective: ${args.objective}`,
-            `Iteration budget: ${maxIterations}`,
-            'Loop phases: Observe -> Plan -> Execute -> Verify -> Reflect -> Continue/Stop.',
-            'Stop conditions: tests pass, acceptance criteria met, or iteration budget exhausted.'
+            `✅ Automation loop initialized: ${loopState.id}`,
+            `Objective: ${args.objective}`,
+            `Iteration Budget: ${maxIterations}`,
+            `Validation: ${loopState.validationCriteria}`,
+            '',
+            'STRUCTURED AUTONOMY PROTOCOL:',
+            '1. OBSERVE: Read system state/logs.',
+            '2. PLAN: Determine the next logical step.',
+            '3. EXECUTE: Call a specific tool.',
+            '4. VERIFY: Check if the action worked.',
+            '5. REFLECT: Update .cortex_loop.json with results.',
+            '6. LOOP: Repeat until objective is met or budget exhausted.',
+            '',
+            `State file persisted at: ${loopFile}`
+        ].join('\n');
+    }
+}
+class AutomationLoopStepTool extends Tool {
+    name = 'plugin_automation_loop_step';
+    description = 'Record an observation and advance the automation loop iteration.';
+    schema = {
+        type: 'object',
+        properties: {
+            observation: { type: 'string', description: 'What was observed after the last action?' },
+            actionTaken: { type: 'string', description: 'The tool/action that was just executed.' },
+            isSuccess: { type: 'boolean', description: 'Whether the last action achieved its goal.' }
+        },
+        required: ['observation', 'actionTaken', 'isSuccess'],
+        additionalProperties: false
+    };
+    async execute(args) {
+        const loopFile = path.resolve(process.cwd(), '.cortex_loop.json');
+        if (!fs.existsSync(loopFile))
+            return '[LOOP ERROR]: No active loop found. Run plugin_automation_loop_plan first.';
+        const state = JSON.parse(fs.readFileSync(loopFile, 'utf-8'));
+        state.currentIteration++;
+        state.history.push({
+            iteration: state.currentIteration,
+            action: args.actionTaken,
+            observation: args.observation,
+            isSuccess: args.isSuccess,
+            timestamp: new Date().toISOString()
+        });
+        if (state.currentIteration >= state.maxIterations) {
+            state.status = 'exhausted';
+        }
+        fs.writeFileSync(loopFile, JSON.stringify(state, null, 2));
+        const statusIcon = args.isSuccess ? '✅' : '❌';
+        return [
+            `${statusIcon} Iteration ${state.currentIteration}/${state.maxIterations} recorded.`,
+            `Status: ${state.status}`,
+            state.status === 'exhausted' ? '⚠️ BUDGET EXHAUSTED. Please review history and decide on a pivot.' : 'Continue to next phase.'
         ].join('\n');
     }
 }
@@ -859,6 +920,7 @@ export const BUILTIN_TOOLSET_FACTORIES = {
     rag: (context) => [new RagKnowledgeStatusTool(context)],
     automation: () => [
         new AutomationLoopPlannerTool(),
+        new AutomationLoopStepTool(),
         new WorkflowValidateTool(),
         new WorkflowRunTool(),
         new WorkflowResumeTool(),

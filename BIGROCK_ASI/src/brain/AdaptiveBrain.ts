@@ -134,8 +134,13 @@ export class AdaptiveBrain {
             }
         }
 
-        // 3. FUSE EMBEDDINGS (Background)
-        // If query implies new concept, check NeuralFusionCore (this would be expanded in real use)
+        // 3. CONTINUOUS FUSION (Background)
+        // Ensure NeuralFusionCore processes the new thoughts for continuous alignment
+        if (!this.is_fusing) {
+            this.is_fusing = true;
+            this.fusion.fuseEncode(query);
+            this.is_fusing = false;
+        }
 
         return result;
     }
@@ -160,9 +165,12 @@ export class AdaptiveBrain {
             this.executeSingle(query, model2)
         ]);
 
+        const m1_score = this.hive.get(model1)?.cpi || 0.6;
+        const m2_score = this.hive.get(model2)?.cpi || 0.4;
+
         const fused = this.response_fuser.fuse([
-            { model_name: model1, response: res1.value as string, domain_score: 0.6, latency_ms: 0 },
-            { model_name: model2, response: res2.value as string, domain_score: 0.4, latency_ms: 0 }
+            { model_name: model1, response: res1.value as string, domain_score: m1_score, latency_ms: 0 },
+            { model_name: model2, response: res2.value as string, domain_score: m2_score, latency_ms: 0 }
         ], 'weighted_blend');
 
         return {
@@ -170,7 +178,7 @@ export class AdaptiveBrain {
             value: fused.fused_response,
             confidence: 0.9,
             proof_trace: [
-                `[Blend]: ${model1} (60%) + ${model2} (40%)`,
+                `[Blend]: ${model1} (CPI: ${m1_score.toFixed(2)}) + ${model2} (CPI: ${m2_score.toFixed(2)})`,
                 `[Model 1 Raw]: ${res1.value.substring(0, 100)}...`,
                 `[Model 2 Raw]: ${res2.value.substring(0, 100)}...`
             ]
@@ -181,12 +189,15 @@ export class AdaptiveBrain {
         const promises = models.map(m => this.executeSingle(query, m));
         const results = await Promise.all(promises);
 
-        const inputs = models.map((m, i) => ({
-            model_name: m,
-            response: results[i].value as string,
-            domain_score: 1.0 / models.length,
-            latency_ms: 0
-        }));
+        const inputs = models.map((m, i) => {
+            const score = this.hive.get(m)?.cpi || (1.0 / models.length);
+            return {
+                model_name: m,
+                response: results[i].value as string,
+                domain_score: score,
+                latency_ms: 0
+            };
+        });
 
         const fused = this.response_fuser.fuse(inputs, 'consensus');
 
@@ -196,7 +207,7 @@ export class AdaptiveBrain {
             confidence: 0.95,
             proof_trace: [
                 `[Consensus Panel]: ${models.join(', ')}`,
-                ...inputs.map(i => `[${i.model_name}]: ${i.response.substring(0, 80)}...`)
+                ...inputs.map(i => `[${i.model_name} (CPI: ${i.domain_score.toFixed(2)})]: ${i.response.substring(0, 80)}...`)
             ]
         };
     }
