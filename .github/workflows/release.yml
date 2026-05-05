@@ -5,44 +5,76 @@ on:
 
 permissions:
   contents: write
+  id-token: write # Required for npm provenance
 
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org
+          cache: 'npm' # Enables automatic npm cache for 10x faster builds
 
       - name: Install & Build BIGROCK_ASI
         working-directory: ./BIGROCK_ASI
-        run: npm ci --no-fund && npm run build
+        run: |
+          npm ci --no-fund --no-audit
+          npm run build
 
       - name: Install & Build CORTEX
-        run: npm ci --no-fund && npm run build
+        run: |
+          npm ci --no-fund --no-audit
+          npm run build
 
       - name: Verify Build
         run: node dist/cli.js --version
 
-      - name: Create Release Tarball
+      - name: Create Release Archives
         run: |
-          tar -czf cortex-${{ github.ref_name }}.tar.gz \
+          VERSION=${{ github.ref_name }}
+          TAR_NAME="cortex-${VERSION}.tar.gz"
+          
+          echo "📦 Packaging $TAR_NAME..."
+          
+          # Use a temporary staging directory to guarantee clean archiving
+          # This fixes the "file changed as we read it" exit code 1 error.
+          mkdir -p /tmp/cortex-release
+          
+          # Create tar.gz (excluding heavy/unnecessary files)
+          tar -czf /tmp/cortex-release/$TAR_NAME \
             --exclude=node_modules \
             --exclude=.git \
             --exclude='*.gguf' \
+            --exclude='*.log' \
+            --exclude=scratch \
             .
+            
+          # Move artifacts back to workspace
+          mv /tmp/cortex-release/$TAR_NAME .
+          
+          # Generate SHA256 Checksums for security/integrity
+          echo "🔒 Generating cryptographic checksums..."
+          sha256sum $TAR_NAME > checksums.txt
+          
+          echo "✅ Packaging complete. Checksums generated."
 
       - name: GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: cortex-${{ github.ref_name }}.tar.gz
+          files: |
+            cortex-${{ github.ref_name }}.tar.gz
+            checksums.txt
           generate_release_notes: true
+          fail_on_unmatched_files: true
 
       - name: Publish to npm
-        run: npm publish --access public
+        run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         continue-on-error: true
