@@ -1,5 +1,5 @@
 /**
- * CORTEX v4.0 — Professional Terminal UI
+ * CORTEX v4.1.0 — Professional Terminal UI
  * Clean, minimal, Claude Code-inspired interface.
  * All agent debug noise is parsed into structured activity items.
  */
@@ -54,22 +54,80 @@ const InputBar = ({ value, streaming, beastMode, kernelReady }) => {
             React.createElement(Text, { color: "white" }, value),
             React.createElement(Text, { color: "gray" }, "\u2588")))));
 };
-// ─── Trust Screen ─────────────────────────────────────────────────────────────
-const TrustScreen = ({ cursor, onSelect }) => (React.createElement(Box, { flexDirection: "column", paddingY: 1, paddingX: 2 },
-    React.createElement(Box, { marginBottom: 1 },
-        React.createElement(Text, { color: "white", bold: true }, "Trust this workspace?")),
-    React.createElement(Text, { color: "gray" }, process.cwd()),
-    React.createElement(Box, { marginY: 1, flexDirection: "column", gap: 0 },
-        React.createElement(Text, { color: "gray", wrap: "wrap" }, "CORTEX will read, edit, and execute files here. Only proceed with code you trust.")),
-    React.createElement(Box, { flexDirection: "column", marginTop: 1 }, [
-        { n: 1, label: 'Yes, I trust this folder' },
-        { n: 2, label: 'No, exit' },
-    ].map(({ n, label }) => (React.createElement(Box, { key: n },
-        React.createElement(Text, { color: cursor === n ? 'greenBright' : 'gray' },
-            cursor === n ? '❯ ' : '  ',
-            label))))),
-    React.createElement(Box, { marginTop: 1 },
-        React.createElement(Text, { color: "gray", dimColor: true }, "\u2191\u2193 navigate \u00B7 Enter to confirm"))));
+// ─── Welcome Screen ───────────────────────────────────────────────────────────
+const CORTEX_LOGO = [
+    '  ██████╗ ██████╗ ██████╗ ████████╗███████╗██╗  ██╗',
+    ' ██╔════╝██╔═══██╗██╔══██╗╚══██╔══╝██╔════╝╚██╗██╔╝',
+    ' ██║     ██║   ██║██████╔╝   ██║   █████╗   ╚███╔╝ ',
+    ' ██║     ██║   ██║██╔══██╗   ██║   ██╔══╝   ██╔██╗ ',
+    ' ╚██████╗╚██████╔╝██║  ██║   ██║   ███████╗██╔╝ ██╗',
+    '  ╚═════╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝',
+];
+const BOOT_STEPS = [
+    { icon: '◈', label: 'Sovereign Intelligence Infrastructure', color: 'cyanBright' },
+    { icon: '◉', label: 'BIGROCK ASI Kernel — initializing...', color: 'magentaBright' },
+    { icon: '◑', label: 'CyberSecurity Engine — 10 layers active', color: 'greenBright' },
+    { icon: '◎', label: 'Autonomous Reasoning Loop — standby', color: 'yellowBright' },
+    { icon: '✦', label: 'All systems nominal', color: 'white' },
+];
+const WelcomeScreen = ({ cursor, onSelect }) => {
+    const [bootStep, setBootStep] = useState(0);
+    const [logoVisible, setLogoVisible] = useState(false);
+    const [taglineVisible, setTaglineVisible] = useState(false);
+    const [menuVisible, setMenuVisible] = useState(false);
+    const [pulseFrame, setPulseFrame] = useState(0);
+    const PULSE_COLORS = ['cyanBright', 'cyan', 'blue', 'cyan', 'cyanBright'];
+    useEffect(() => {
+        // Logo fade-in
+        const t1 = setTimeout(() => setLogoVisible(true), 80);
+        // Boot steps trickle in
+        const t2 = setTimeout(() => setTaglineVisible(true), 300);
+        const timers = [t1, t2];
+        BOOT_STEPS.forEach((_, i) => {
+            const t = setTimeout(() => setBootStep(i + 1), 400 + i * 220);
+            timers.push(t);
+        });
+        // Reveal menu after all steps done
+        const menuDelay = 400 + BOOT_STEPS.length * 220 + 180;
+        const t3 = setTimeout(() => setMenuVisible(true), menuDelay);
+        timers.push(t3);
+        // Logo pulse
+        const pulse = setInterval(() => setPulseFrame(f => (f + 1) % PULSE_COLORS.length), 600);
+        return () => { timers.forEach(clearTimeout); clearInterval(pulse); };
+    }, []);
+    const hasApiKey = !!(process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'dummy-key' && process.env.OPENAI_API_KEY.length > 8);
+    return (React.createElement(Box, { flexDirection: "column", paddingY: 1, paddingX: 2 },
+        logoVisible && (React.createElement(Box, { flexDirection: "column", marginBottom: 1 }, CORTEX_LOGO.map((line, i) => (React.createElement(Text, { key: i, color: PULSE_COLORS[pulseFrame], bold: true }, line))))),
+        taglineVisible && (React.createElement(Box, { marginBottom: 1, flexDirection: "column" },
+            React.createElement(Text, { color: "white", bold: true }, "Unified Sovereign Intelligence Infrastructure"),
+            React.createElement(Box, { gap: 2, marginTop: 0 },
+                React.createElement(Text, { color: "gray", dimColor: true }, "v4.1.0"),
+                React.createElement(Text, { color: "gray", dimColor: true }, "\u00B7"),
+                React.createElement(Text, { color: hasApiKey ? 'greenBright' : 'yellow', dimColor: true }, hasApiKey ? '● Cloud AI ready' : '○ No API key'),
+                React.createElement(Text, { color: "gray", dimColor: true }, "\u00B7"),
+                React.createElement(Text, { color: "cyanBright", dimColor: true }, "air-gapped \u00B7 sovereign")))),
+        bootStep > 0 && (React.createElement(Box, { flexDirection: "column", marginBottom: 1, paddingLeft: 1 }, BOOT_STEPS.slice(0, bootStep).map((step, i) => (React.createElement(Box, { key: i, gap: 1 },
+            React.createElement(Text, { color: step.color }, step.icon),
+            React.createElement(Text, { color: i === bootStep - 1 ? 'white' : 'gray' }, step.label)))))),
+        menuVisible && (React.createElement(Box, { flexDirection: "column" },
+            React.createElement(Box, { marginBottom: 1, flexDirection: "column" },
+                React.createElement(Text, { color: "white", bold: true }, "Trust this workspace?"),
+                React.createElement(Text, { color: "gray", dimColor: true }, process.cwd()),
+                React.createElement(Text, { color: "gray" }, "CORTEX will read, edit, and execute files here. Only proceed with code you trust.")),
+            React.createElement(Box, { flexDirection: "column", gap: 0 }, [
+                { n: 1, label: 'Yes, proceed  — I trust this folder', color: 'greenBright' },
+                { n: 2, label: 'No, exit', color: 'gray' },
+            ].map(({ n, label, color }) => (React.createElement(Box, { key: n },
+                React.createElement(Text, { color: cursor === n ? color : 'gray', bold: cursor === n },
+                    cursor === n ? '❯ ' : '  ',
+                    label))))),
+            React.createElement(Box, { marginTop: 1, gap: 2 },
+                React.createElement(Text, { color: "gray", dimColor: true }, "\u2191\u2193 navigate"),
+                React.createElement(Text, { color: "gray", dimColor: true }, "\u00B7"),
+                React.createElement(Text, { color: "gray", dimColor: true }, "Enter to confirm"),
+                React.createElement(Text, { color: "gray", dimColor: true }, "\u00B7"),
+                React.createElement(Text, { color: "gray", dimColor: true }, "/help for commands"))))));
+};
 // ─── Setup Wizard ─────────────────────────────────────────────────────────────
 const SetupWizard = ({ onExit }) => {
     return (React.createElement(Box, { flexDirection: "column", paddingY: 1, paddingX: 2, borderStyle: "round", borderColor: "cyan" },
@@ -105,7 +163,7 @@ const Header = ({ beastMode, kernelReady }) => (React.createElement(Box, { justi
         beastMode && React.createElement(Text, { color: "red", bold: true }, "\u26A1 BEAST")),
     React.createElement(Box, { gap: 2 },
         kernelReady && React.createElement(Text, { color: "green", dimColor: true }, "\u25CF Local ASI"),
-        React.createElement(Text, { color: "gray", dimColor: true }, "v4.0 \u00B7 /help"))));
+        React.createElement(Text, { color: "gray", dimColor: true }, "v4.1.0 \u00B7 /help"))));
 // ─── Main App ─────────────────────────────────────────────────────────────────
 const App = () => {
     const { exit } = useApp();
@@ -751,7 +809,7 @@ const App = () => {
     const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
     // ─── Render ───────────────────────────────────────────────────────────
     if (!trusted) {
-        return React.createElement(TrustScreen, { cursor: trustCursor, onSelect: setTrustCursor });
+        return React.createElement(WelcomeScreen, { cursor: trustCursor, onSelect: setTrustCursor });
     }
     if (showSetup) {
         return React.createElement(SetupWizard, { onExit: () => setShowSetup(false) });

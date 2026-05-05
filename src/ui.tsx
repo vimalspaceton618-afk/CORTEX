@@ -1,5 +1,5 @@
 /**
- * CORTEX v4.0 — Professional Terminal UI
+ * CORTEX v4.1.0 — Professional Terminal UI
  * Clean, minimal, Claude Code-inspired interface.
  * All agent debug noise is parsed into structured activity items.
  */
@@ -120,37 +120,129 @@ const InputBar = ({ value, streaming, beastMode, kernelReady }: {
     );
 };
 
-// ─── Trust Screen ─────────────────────────────────────────────────────────────
+// ─── Welcome Screen ───────────────────────────────────────────────────────────
 
-const TrustScreen = ({ cursor, onSelect }: { cursor: number; onSelect: (v: number) => void }) => (
-    <Box flexDirection="column" paddingY={1} paddingX={2}>
-        <Box marginBottom={1}>
-            <Text color="white" bold>Trust this workspace?</Text>
-        </Box>
-        <Text color="gray">{process.cwd()}</Text>
-        <Box marginY={1} flexDirection="column" gap={0}>
-            <Text color="gray" wrap="wrap">
-                CORTEX will read, edit, and execute files here.
-                Only proceed with code you trust.
-            </Text>
-        </Box>
-        <Box flexDirection="column" marginTop={1}>
-            {[
-                { n: 1, label: 'Yes, I trust this folder' },
-                { n: 2, label: 'No, exit' },
-            ].map(({ n, label }) => (
-                <Box key={n}>
-                    <Text color={cursor === n ? 'greenBright' : 'gray'}>
-                        {cursor === n ? '❯ ' : '  '}{label}
-                    </Text>
+const CORTEX_LOGO = [
+    '  ██████╗ ██████╗ ██████╗ ████████╗███████╗██╗  ██╗',
+    ' ██╔════╝██╔═══██╗██╔══██╗╚══██╔══╝██╔════╝╚██╗██╔╝',
+    ' ██║     ██║   ██║██████╔╝   ██║   █████╗   ╚███╔╝ ',
+    ' ██║     ██║   ██║██╔══██╗   ██║   ██╔══╝   ██╔██╗ ',
+    ' ╚██████╗╚██████╔╝██║  ██║   ██║   ███████╗██╔╝ ██╗',
+    '  ╚═════╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝',
+];
+
+const BOOT_STEPS = [
+    { icon: '◈', label: 'Sovereign Intelligence Infrastructure', color: 'cyanBright' as const },
+    { icon: '◉', label: 'BIGROCK ASI Kernel — initializing...', color: 'magentaBright' as const },
+    { icon: '◑', label: 'CyberSecurity Engine — 10 layers active', color: 'greenBright' as const },
+    { icon: '◎', label: 'Autonomous Reasoning Loop — standby', color: 'yellowBright' as const },
+    { icon: '✦', label: 'All systems nominal', color: 'white' as const },
+];
+
+const WelcomeScreen = ({ cursor, onSelect }: { cursor: number; onSelect: (v: number) => void }) => {
+    const [bootStep, setBootStep] = useState(0);
+    const [logoVisible, setLogoVisible] = useState(false);
+    const [taglineVisible, setTaglineVisible] = useState(false);
+    const [menuVisible, setMenuVisible] = useState(false);
+    const [pulseFrame, setPulseFrame] = useState(0);
+
+    const PULSE_COLORS = ['cyanBright', 'cyan', 'blue', 'cyan', 'cyanBright'] as const;
+
+    useEffect(() => {
+        // Logo fade-in
+        const t1 = setTimeout(() => setLogoVisible(true), 80);
+        // Boot steps trickle in
+        const t2 = setTimeout(() => setTaglineVisible(true), 300);
+        const timers: ReturnType<typeof setTimeout>[] = [t1, t2];
+        BOOT_STEPS.forEach((_, i) => {
+            const t = setTimeout(() => setBootStep(i + 1), 400 + i * 220);
+            timers.push(t);
+        });
+        // Reveal menu after all steps done
+        const menuDelay = 400 + BOOT_STEPS.length * 220 + 180;
+        const t3 = setTimeout(() => setMenuVisible(true), menuDelay);
+        timers.push(t3);
+        // Logo pulse
+        const pulse = setInterval(() => setPulseFrame(f => (f + 1) % PULSE_COLORS.length), 600);
+        return () => { timers.forEach(clearTimeout); clearInterval(pulse); };
+    }, []);
+
+    const hasApiKey = !!(process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'dummy-key' && process.env.OPENAI_API_KEY.length > 8);
+
+    return (
+        <Box flexDirection="column" paddingY={1} paddingX={2}>
+
+            {/* ── ASCII Logo ── */}
+            {logoVisible && (
+                <Box flexDirection="column" marginBottom={1}>
+                    {CORTEX_LOGO.map((line, i) => (
+                        <Text key={i} color={PULSE_COLORS[pulseFrame]} bold>{line}</Text>
+                    ))}
                 </Box>
-            ))}
+            )}
+
+            {/* ── Tagline ── */}
+            {taglineVisible && (
+                <Box marginBottom={1} flexDirection="column">
+                    <Text color="white" bold>Unified Sovereign Intelligence Infrastructure</Text>
+                    <Box gap={2} marginTop={0}>
+                        <Text color="gray" dimColor>v4.1.0</Text>
+                        <Text color="gray" dimColor>·</Text>
+                        <Text color={hasApiKey ? 'greenBright' : 'yellow'} dimColor>
+                            {hasApiKey ? '● Cloud AI ready' : '○ No API key'}
+                        </Text>
+                        <Text color="gray" dimColor>·</Text>
+                        <Text color="cyanBright" dimColor>air-gapped · sovereign</Text>
+                    </Box>
+                </Box>
+            )}
+
+            {/* ── Boot Sequence ── */}
+            {bootStep > 0 && (
+                <Box flexDirection="column" marginBottom={1} paddingLeft={1}>
+                    {BOOT_STEPS.slice(0, bootStep).map((step, i) => (
+                        <Box key={i} gap={1}>
+                            <Text color={step.color}>{step.icon}</Text>
+                            <Text color={i === bootStep - 1 ? 'white' : 'gray'}>{step.label}</Text>
+                        </Box>
+                    ))}
+                </Box>
+            )}
+
+            {/* ── Trust Menu ── */}
+            {menuVisible && (
+                <Box flexDirection="column">
+                    <Box marginBottom={1} flexDirection="column">
+                        <Text color="white" bold>Trust this workspace?</Text>
+                        <Text color="gray" dimColor>{process.cwd()}</Text>
+                        <Text color="gray">CORTEX will read, edit, and execute files here. Only proceed with code you trust.</Text>
+                    </Box>
+
+                    <Box flexDirection="column" gap={0}>
+                        {[
+                            { n: 1, label: 'Yes, proceed  — I trust this folder', color: 'greenBright' as const },
+                            { n: 2, label: 'No, exit', color: 'gray' as const },
+                        ].map(({ n, label, color }) => (
+                            <Box key={n}>
+                                <Text color={cursor === n ? color : 'gray'} bold={cursor === n}>
+                                    {cursor === n ? '❯ ' : '  '}{label}
+                                </Text>
+                            </Box>
+                        ))}
+                    </Box>
+
+                    <Box marginTop={1} gap={2}>
+                        <Text color="gray" dimColor>↑↓ navigate</Text>
+                        <Text color="gray" dimColor>·</Text>
+                        <Text color="gray" dimColor>Enter to confirm</Text>
+                        <Text color="gray" dimColor>·</Text>
+                        <Text color="gray" dimColor>/help for commands</Text>
+                    </Box>
+                </Box>
+            )}
         </Box>
-        <Box marginTop={1}>
-            <Text color="gray" dimColor>↑↓ navigate · Enter to confirm</Text>
-        </Box>
-    </Box>
-);
+    );
+};
 
 // ─── Setup Wizard ─────────────────────────────────────────────────────────────
 
@@ -208,7 +300,7 @@ const Header = ({ beastMode, kernelReady }: { beastMode: boolean; kernelReady: b
         </Box>
         <Box gap={2}>
             {kernelReady && <Text color="green" dimColor>● Local ASI</Text>}
-            <Text color="gray" dimColor>v4.0 · /help</Text>
+            <Text color="gray" dimColor>v4.1.0 · /help</Text>
         </Box>
     </Box>
 );
@@ -865,7 +957,7 @@ const App = () => {
     // ─── Render ───────────────────────────────────────────────────────────
 
     if (!trusted) {
-        return <TrustScreen cursor={trustCursor} onSelect={setTrustCursor} />;
+        return <WelcomeScreen cursor={trustCursor} onSelect={setTrustCursor} />;
     }
 
     if (showSetup) {
